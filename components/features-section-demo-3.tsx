@@ -119,7 +119,7 @@ export const SkeletonOne = () => {
         <div className="flex flex-1 w-full h-full flex-col space-y-2  ">
           {/* TODO */}
           <img
-            src="/upload.png"
+            src="https://plus.unsplash.com/premium_photo-1677401495278-8c7fffe00792?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZmlsZSUyMHVwbG9hZHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&q=60&w=600"
             alt="header"
             width={800}
             height={800}
