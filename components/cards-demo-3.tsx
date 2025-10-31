@@ -4,16 +4,23 @@ import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { GoCopilot } from "react-icons/go";
 
+// Deterministic pseudo-random based on index and a salt to avoid SSR/client mismatch
+const seeded = (index: number, salt: number = 0) => {
+  let x = (index + 1) * 374761393 + salt * 668265263;
+  x = (x ^ (x >>> 13)) * 1274126177;
+  x = (x ^ (x >>> 16)) >>> 0;
+  return (x % 1000000) / 1000000;
+};
+
 export default function CardDemo() {
   return (
     <Card>
       <CardSkeletonContainer>
         <Skeleton />
       </CardSkeletonContainer>
-      <CardTitle>Damn good card</CardTitle>
+      <CardTitle>Best AI models</CardTitle>
       <CardDescription>
-        A card that showcases a set of tools that you use to create your
-        product.
+        Industry Leading worlds best AI model at your keypress.
       </CardDescription>
     </Card>
   );
@@ -101,37 +108,42 @@ const Skeleton = () => {
   );
 };
 const Sparkles = () => {
-  const randomMove = () => Math.random() * 2 - 1;
-  const randomOpacity = () => Math.random();
-  const random = () => Math.random();
   return (
     <div className="absolute inset-0">
-      {[...Array(12)].map((_, i) => (
-        <motion.span
-          key={`star-${i}`}
-          animate={{
-            top: `calc(${random() * 100}% + ${randomMove()}px)`,
-            left: `calc(${random() * 100}% + ${randomMove()}px)`,
-            opacity: randomOpacity(),
-            scale: [1, 1.2, 0],
-          }}
-          transition={{
-            duration: random() * 2 + 4,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          style={{
-            position: "absolute",
-            top: `${random() * 100}%`,
-            left: `${random() * 100}%`,
-            width: `2px`,
-            height: `2px`,
-            borderRadius: "50%",
-            zIndex: 1,
-          }}
-          className="inline-block bg-black dark:bg-white"
-        ></motion.span>
-      ))}
+      {[...Array(12)].map((_, i) => {
+        const top0 = seeded(i, 11) * 100;
+        const left0 = seeded(i, 23) * 100;
+        const moveTop = (seeded(i, 31) * 2 - 1).toFixed(3);
+        const moveLeft = (seeded(i, 43) * 2 - 1).toFixed(3);
+        const opacity = Math.max(0.3, seeded(i, 59));
+        const duration = 4 + seeded(i, 71) * 2;
+        return (
+          <motion.span
+            key={`star-${i}`}
+            animate={{
+              top: `calc(${top0}% + ${moveTop}px)`,
+              left: `calc(${left0}% + ${moveLeft}px)`,
+              opacity,
+              scale: [1, 1.2, 0],
+            }}
+            transition={{
+              duration,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            style={{
+              position: "absolute",
+              top: `${top0}%`,
+              left: `${left0}%`,
+              width: `2px`,
+              height: `2px`,
+              borderRadius: "50%",
+              zIndex: 1,
+            }}
+            className="inline-block bg-black dark:bg-white"
+          />
+        );
+      })}
     </div>
   );
 };

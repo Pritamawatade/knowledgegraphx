@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import CardDemo from "@/components/cards-demo-3";
 import { CardStack } from "@/components/ui/card-stack";
+import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
+import FeaturesSectionDemo from "@/components/features-section-demo-3";
 
 export const Highlight = ({
   children,
@@ -87,9 +89,10 @@ export default function Home() {
         <h1 className="bg-opacity-50 bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text text-center text-4xl font-bold text-transparent md:text-7xl">
           CHAT <br /> with any documents.
         </h1>
-        <p className="mx-auto mt-4 max-w-lg text-center text-base font-normal text-neutral-300">
-          Do smartwork by turning your pdf into a conversatinal learning resource
-        </p>
+        <div>
+
+          <TextGenerateEffect  className="text-white text-center" words="Do smartwork by turning your pdf into a conversatinal learning resource" />
+        </div>
 
         <div className="mt-8 flex justify-center gap-4">
           <SignedOut>
@@ -148,6 +151,10 @@ export default function Home() {
         <CardStack  items={CARDS} />
       </div>
 
+<div id="feature">
+
+  <FeaturesSectionDemo />
+</div>
       {/* Logos/Testimonials Strip */}
       <section className="border-t border-b bg-muted/40 py-8">
         <div className="container mx-auto px-6">

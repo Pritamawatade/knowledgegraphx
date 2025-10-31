@@ -401,7 +401,7 @@ export default function ContactPage() {
                 asChild 
                 size="lg" 
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-3"
+                className="border-white text-black dark:text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-3"
               >
                 <a href="/query">
                   Start Chatting
