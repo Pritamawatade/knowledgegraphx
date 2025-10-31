@@ -1,34 +1,49 @@
 import { auth } from '@clerk/nextjs/server';
 import { supabaseServer } from '@/lib/supabaseServer';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const body = await request.formData();
-  const file = body.get('file') as File;
-  if (!file) {
+  const file = body.get('file');
+  if (!(file instanceof File)) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 });
   }
 
   const fileName = `${userId}/${Date.now()}-${file.name}`;
 
-  const { data, error } = await supabaseServer.storage
+  const { data: uploadData, error: uploadError } = await supabaseServer.storage
     .from('documents')
     .upload(fileName, file, { upsert: false });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (uploadError) {
+    return NextResponse.json({ error: uploadError.message }, { status: 500 });
   }
 
-  console.log(`response data = ${JSON.stringify(data)}`)
+  // Insert metadata record
+  const { data: metaInsert, error: metaError } = await supabaseServer
+    .from('documents_metadata')
+    .insert([
+      {
+        user_id: userId,
+        file_name: fileName,
+        path: uploadData.path,
+        uploaded_at: new Date()
+      }
+    ])
+    .select('id')
+    .single();
 
-  // Optionally insert record into your metadata table in Supabase DB
-  // e.g., documents table with user id, fileName, bucket path, timestamp, etc.
+  if (metaError) {
+    console.error('Error inserting metadata:', metaError);
+    // You might choose to continue anyway
+  }
 
-  return NextResponse.json({ path: data.path, fileName });
+  const metadataId = metaInsert?.id;
+
+  return NextResponse.json({ path: uploadData.path, fileName, metadataId });
 }
-
