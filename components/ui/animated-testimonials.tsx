@@ -11,6 +11,12 @@ type Testimonial = {
   designation: string;
   src: string;
 };
+const seeded = (index: number, salt: number = 0) => {
+  let x = (index + 1) * 374761393 + salt * 668265263;
+  x = (x ^ (x >>> 13)) * 1274126177;
+  x = (x ^ (x >>> 16)) >>> 0;
+  return (x % 1000000) / 1000000;
+};
 export const AnimatedTestimonials = ({
   testimonials,
   autoplay = false,
@@ -40,7 +46,7 @@ export const AnimatedTestimonials = ({
   }, [autoplay]);
 
   const randomRotateY = () => {
-    return Math.floor(Math.random() * 21) - 10;
+    return Math.floor(seeded(19,12) * 21) - 10;
   };
   return (
     <div className="mx-auto max-w-sm px-4 py-20 font-sans antialiased md:max-w-4xl md:px-8 lg:px-12">
