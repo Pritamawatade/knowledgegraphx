@@ -47,7 +47,7 @@ export default function Navbar() {
                       <NavigationMenuLink asChild>
                         <Link
                           className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                          href="/chat"
+                          href="/query"
                         >
                           <MessageCircle className="h-6 w-6" />
                           <div className="mb-2 mt-4 text-lg font-medium">
@@ -62,7 +62,7 @@ export default function Navbar() {
                     <li>
                       <NavigationMenuLink asChild>
                         <Link
-                          href="/chat/history"
+                          href="/history"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
                           <div className="text-sm font-medium leading-none">Chat History</div>
@@ -75,7 +75,7 @@ export default function Navbar() {
                     <li>
                       <NavigationMenuLink asChild>
                         <Link
-                          href="/chat/new"
+                          href="/query"
                           className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                         >
                           <div className="text-sm font-medium leading-none">New Chat</div>
@@ -152,7 +152,7 @@ export default function Navbar() {
                 </NavigationMenuContent>
               </NavigationMenuItem>
 
-              <NavigationMenuItem>
+              {/* <NavigationMenuItem>
                 <Link href="/contact">
                   <NavigationMenuLink className={cn(
                     "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
@@ -161,7 +161,7 @@ export default function Navbar() {
                     Contact
                   </NavigationMenuLink>
                 </Link>
-              </NavigationMenuItem>
+              </NavigationMenuItem> */}
             </NavigationMenuList>
           </NavigationMenu>
         </nav>
@@ -231,7 +231,7 @@ export default function Navbar() {
               <span>Upload</span>
             </Link>
             <Link 
-              href="/chat" 
+              href="/query" 
               className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
               onClick={() => setIsMenuOpen(false)}
             >

@@ -4,8 +4,63 @@ import { Spotlight } from "@/components/ui/spotlight";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import CardDemo from "@/components/cards-demo-3";
+import { CardStack } from "@/components/ui/card-stack";
+
+export const Highlight = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  return (
+    <span
+      className={cn(
+        "font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-700/[0.2] dark:text-emerald-500 px-1 py-0.5",
+        className
+      )}
+    >
+      {children}
+    </span>
+  );
+};
 
 export default function Home() {
+
+  
+  const CARDS = [
+    {
+      id: 0,
+      name: "Priya Mehta",
+      designation: "Research Analyst",
+      content: (
+        <p>
+          “Using the knowledge-base chat I uploaded my 200-page PDF, asked complex queries and got <Highlight>accurate insights in seconds</Highlight>. Truly a game-changer.”
+        </p>
+      ),
+    },
+    {
+      id: 1,
+      name: "Rahul Gupta",
+      designation: "Team Lead – Documentation",
+      content: (
+        <p>
+          “Our team scattered into multiple DOCX reports and CSV logs was a mess. With <Highlight>upload → index → chat</Highlight> flow it’s now one unified knowledge engine. Zero confusion.”
+        </p>
+      ),
+    },
+    {
+      id: 2,
+      name: "Ananya Singh",
+      designation: "Enterprise Architect",
+      content: (
+        <p>
+          “I asked about regulatory compliance within our PDF archives and got an answer with <Highlight>live citations pointing to page numbers</Highlight>. Makes auditing and decision-making so much faster.”
+        </p>
+      ),
+    },
+  ];
+  
   return (
     <main className="relative overflow-hidden">
       {/* Animated background inspired by Aceternity Background Beams */}
@@ -88,7 +143,10 @@ export default function Home() {
         </div>
       </section> */}
 
-      <CardDemo />
+      <div className="flex items-center justify-around  py-12 px-4  ">
+        <CardDemo />
+        <CardStack  items={CARDS} />
+      </div>
 
       {/* Logos/Testimonials Strip */}
       <section className="border-t border-b bg-muted/40 py-8">
