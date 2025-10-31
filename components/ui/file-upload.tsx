@@ -1,6 +1,7 @@
 "use client"
 import { cn } from "@/lib/utils";
 import React, { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
@@ -45,6 +46,9 @@ export const FileUpload = ({
   const [error, setError] = useState<string | null>(null);
   const [indexing, setIndexing] = useState(false);
   const [indexedCount, setIndexedCount] = useState<number | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [phase, setPhase] = useState<'idle' | 'upload' | 'ingest' | 'done'>('idle');
+  const router = useRouter();
 
   // const handleFileChange = (newFiles: File[]) => {
   //   setFiles((prevFiles) => [...prevFiles, ...newFiles]);
@@ -58,26 +62,53 @@ export const FileUpload = ({
 
     setUploading(true);
     setError(null);
+    setProgress(0);
+    setPhase('upload');
 
     try {
       const formData = new FormData();
       formData.append('file', file);
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      // Use XHR to get upload progress events
+      const uploadJson = await new Promise<any>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload');
+        xhr.upload.onprogress = (evt) => {
+          if (evt.lengthComputable) {
+            const pct = Math.round((evt.loaded / evt.total) * 70); // cap upload at 70%
+            setProgress(pct);
+          }
+        };
+        xhr.onload = () => {
+          try {
+            const resp = JSON.parse(xhr.responseText || '{}');
+            if (xhr.status >= 200 && xhr.status < 300) {
+              setProgress((p) => (p < 70 ? 70 : p));
+              resolve(resp);
+            } else {
+              reject(new Error(resp.error || 'Upload failed'));
+            }
+          } catch (e: any) {
+            reject(new Error('Upload failed'));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.send(formData);
       });
 
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.error || 'Upload failed');
-      }
+      const json = uploadJson;
       setFilePath(json.path);
 
       // Trigger ingestion automatically
       if (json.metadataId) {
         try {
           setIndexing(true);
+          setPhase('ingest');
+          // Simulate determinate progress from 70 -> 95% while server works
+          let simulated = 70;
+          const timer = setInterval(() => {
+            simulated = Math.min(simulated + 1, 95);
+            setProgress(simulated);
+          }, 300);
           const ingestRes = await fetch('/api/ingest', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -88,6 +119,13 @@ export const FileUpload = ({
             throw new Error(ingestJson.error || 'Ingestion failed');
           }
           setIndexedCount(ingestJson.documentsCount ?? null);
+          clearInterval(timer);
+          setProgress(100);
+          setPhase('done');
+          // Redirect to chat after short delay
+          setTimeout(() => {
+            router.push('/query');
+          }, 500);
         } catch (e: any) {
           setError(e.message);
         } finally {
@@ -235,6 +273,20 @@ export const FileUpload = ({
               ></motion.div>
             )}
           </div>
+        {(uploading || indexing) && (
+          <div className="w-full max-w-xl mx-auto mt-6">
+            <div className="flex items-center justify-between mb-2 text-sm text-neutral-600 dark:text-neutral-300">
+              <span>{phase === 'upload' ? 'Uploading…' : phase === 'ingest' ? 'Processing…' : 'Completed'}</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="w-full h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden">
+              <div
+                className="h-2 bg-neutral-900 dark:bg-white transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
         <Button
           className={cn(
             "mt-12 font-semibold px-6 py-2 rounded-lg border border-transparent transition-colors",

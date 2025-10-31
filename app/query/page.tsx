@@ -1,57 +1,116 @@
-'use client';
-import { useState } from 'react';
+"use client";
+import { useRef, useState, useEffect } from 'react';
+
+type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+  sources?: Array<{ file: string; page: number | null }>; // only for assistant
+};
 
 export default function QueryPage() {
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [sources, setSources] = useState<Array<{ file: string; page: number | null }>>([]);
-  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  const askQuestion = async () => {
-    setLoading(true);
-    const res = await fetch('/api/query', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question }),
-    });
-    const data = await res.json();
-    setAnswer(data.answer);
-    setSources(Array.isArray(data.sources) ? data.sources : []);
-    setLoading(false);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, sending]);
+
+  const sendMessage = async () => {
+    const question = input.trim();
+    if (!question || sending) return;
+    setSending(true);
+    setMessages((prev) => [...prev, { role: 'user', content: question }]);
+    setInput('');
+
+    try {
+      const res = await fetch('/api/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+      const data = await res.json();
+      const answer: string = data.answer || '';
+      const sources: Array<{ file: string; page: number | null }> = Array.isArray(data.sources) ? data.sources : [];
+      setMessages((prev) => [...prev, { role: 'assistant', content: answer, sources }]);
+    } catch (e: any) {
+      setMessages((prev) => [...prev, { role: 'assistant', content: "Sorry, something went wrong. Please try again." }]);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">Ask your documents 📚</h1>
-      <textarea
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        placeholder="Ask a question..."
-        className="w-full border p-2 rounded-md"
-      />
-      <button
-        onClick={askQuestion}
-        disabled={loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded mt-3"
-      >
-        {loading ? 'Thinking...' : 'Ask'}
-      </button>
-      {answer && (
-        <div className="mt-6 p-4 border rounded bg-gray-50">
-          <h2 className="font-semibold">Answer:</h2>
-          <p>{answer}</p>
-          {sources.length > 0 && (
-            <div className="mt-3">
-              <div className="font-medium">Sources:</div>
-              <ul className="list-disc ml-5 text-sm text-gray-700">
-                {sources.map((s, idx) => (
-                  <li key={idx}>{s.file}{s.page ? ` (p. ${s.page})` : ''}</li>
-                ))}
-              </ul>
+    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-3xl mx-auto px-4">
+      <div className="py-4 text-center sticky top-0 bg-white/70 dark:bg-neutral-950/70 backdrop-blur z-10">
+        <h1 className="text-xl font-semibold">Chat with your documents</h1>
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-4 pb-6">
+        {messages.length === 0 && (
+          <div className="text-center text-neutral-500 mt-10">
+            Ask a question about your uploaded PDFs.
+          </div>
+        )}
+
+        {messages.map((m, idx) => (
+          <div key={idx} className={`w-full flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${m.role === 'user' ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 rounded-bl-sm'}`}>
+              <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+              {m.role === 'assistant' && m.sources && m.sources.length > 0 && (
+                <div className="mt-3 border-t border-neutral-200 dark:border-neutral-700 pt-2 text-xs opacity-80">
+                  <div className="font-medium mb-1">Sources</div>
+                  <ul className="list-disc ml-5">
+                    {m.sources.map((s, i) => (
+                      <li key={i}>{s.file}{s.page ? ` (p. ${s.page})` : ''}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        ))}
+
+        {sending && (
+          <div className="w-full flex justify-start">
+            <div className="max-w-[85%] rounded-2xl px-4 py-3 text-sm bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 rounded-bl-sm">
+              <span className="opacity-70">Thinking…</span>
+            </div>
+          </div>
+        )}
+
+        <div ref={bottomRef} />
+      </div>
+
+      <div className="sticky bottom-0 pb-4 bg-white/70 dark:bg-neutral-950/70 backdrop-blur z-10">
+        <div className="border rounded-xl p-2 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Write your question…"
+            rows={1}
+            className="w-full resize-none outline-none bg-transparent p-2 text-sm"
+          />
+          <div className="flex justify-end">
+            <button
+              onClick={sendMessage}
+              disabled={sending || !input.trim()}
+              className="bg-blue-600 text-white px-4 py-1.5 rounded-md text-sm disabled:opacity-50"
+            >
+              {sending ? 'Sending…' : 'Send'}
+            </button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
