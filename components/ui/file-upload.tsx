@@ -39,7 +39,6 @@ export const FileUpload = ({
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const theme = localStorage.getItem('theme');
 
   const [uploading, setUploading] = useState(false);
   const [filePath, setFilePath] = useState<string | null>(null);
