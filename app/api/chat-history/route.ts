@@ -9,9 +9,9 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabaseServer
       .from('query_history')
-      .select('question, answer, created_at')
+      .select('id, question, answer, created_at')
       .eq('user_id', userId)
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: false })
       .limit(50); // Limit to last 50 conversations
 
     if (error) {

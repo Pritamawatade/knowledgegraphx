@@ -6,10 +6,7 @@ import { motion } from "motion/react";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
 
-import { supabase } from '@/lib/supabaseClient';  // or you may call your API route
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useTheme } from "next-themes";
 const mainVariant = {
   initial: {
     x: 0,
@@ -39,14 +36,13 @@ export const FileUpload = ({
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-
   const [uploading, setUploading] = useState(false);
-  const [filePath, setFilePath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [indexing, setIndexing] = useState(false);
-  const [indexedCount, setIndexedCount] = useState<number | null>(null);
   const [progress, setProgress] = useState<number>(0);
   const [phase, setPhase] = useState<'idle' | 'upload' | 'ingest' | 'done'>('idle');
+  const [uploadResults, setUploadResults] = useState<any[]>([]);
+  const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
   const router = useRouter();
 
   // const handleFileChange = (newFiles: File[]) => {
@@ -55,11 +51,11 @@ export const FileUpload = ({
   // };
 
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement> | { target: { files: File[] } }) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (!selectedFiles || selectedFiles.length === 0) return;
 
-    // Validate file type
+    // Validate file types and sizes
     const allowedTypes = [
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -67,33 +63,46 @@ export const FileUpload = ({
       'application/csv'
     ];
     
-    if (!allowedTypes.includes(file.type)) {
-      setError('Please upload only PDF, DOCX, or CSV files.');
+    const maxSize = 50 * 1024 * 1024; // 50MB per file
+    const maxFiles = 10; // Maximum 10 files
+
+    if (selectedFiles.length > maxFiles) {
+      setError(`Maximum ${maxFiles} files allowed at once.`);
       return;
     }
 
-    // Validate file size (50MB limit)
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    if (file.size > maxSize) {
-      setError('File size must be less than 50MB.');
-      return;
+    // Validate each file
+    for (const file of selectedFiles) {
+      if (!allowedTypes.includes(file.type)) {
+        setError(`Unsupported file type: ${file.name}. Please upload only PDF, DOCX, or CSV files.`);
+        return;
+      }
+      if (file.size > maxSize) {
+        setError(`File ${file.name} is too large. Maximum size is 50MB.`);
+        return;
+      }
     }
 
+    setFiles(selectedFiles);
     setUploading(true);
     setError(null);
     setProgress(0);
     setPhase('upload');
+    setCurrentFileIndex(0);
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      // Use XHR to get upload progress events
+      selectedFiles.forEach(file => {
+        formData.append('files', file);
+      });
+
+      // Upload all files
       const uploadJson = await new Promise<any>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/api/upload');
         xhr.upload.onprogress = (evt) => {
           if (evt.lengthComputable) {
-            const pct = Math.round((evt.loaded / evt.total) * 70); // cap upload at 70%
+            const pct = Math.round((evt.loaded / evt.total) * 60); // cap upload at 60%
             setProgress(pct);
           }
         };
@@ -101,7 +110,7 @@ export const FileUpload = ({
           try {
             const resp = JSON.parse(xhr.responseText || '{}');
             if (xhr.status >= 200 && xhr.status < 300) {
-              setProgress((p) => (p < 70 ? 70 : p));
+              setProgress(60);
               resolve(resp);
             } else {
               reject(new Error(resp.error || 'Upload failed'));
@@ -114,37 +123,52 @@ export const FileUpload = ({
         xhr.send(formData);
       });
 
-      const json = uploadJson;
-      setFilePath(json.path);
+      if (!uploadJson.success) {
+        throw new Error(uploadJson.error || 'Upload failed');
+      }
 
-      // Trigger ingestion automatically
-      if (json.metadataId) {
+      setUploadResults(uploadJson.uploadedFiles);
+
+      // Trigger batch ingestion
+      if (uploadJson.uploadedFiles && uploadJson.uploadedFiles.length > 0) {
         try {
           setIndexing(true);
           setPhase('ingest');
-          // Simulate determinate progress from 70 -> 95% while server works
-          let simulated = 70;
+          
+          const metadataIds = uploadJson.uploadedFiles.map((file: any) => file.metadataId);
+          
+          // Simulate progress from 60% to 95%
+          let simulated = 60;
           const timer = setInterval(() => {
-            simulated = Math.min(simulated + 1, 95);
+            simulated = Math.min(simulated + 2, 95);
             setProgress(simulated);
-          }, 300);
-          const ingestRes = await fetch('/api/ingest', {
+          }, 500);
+
+          const ingestRes = await fetch('/api/ingest-batch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ metadataId: json.metadataId }),
+            body: JSON.stringify({ metadataIds }),
           });
+          
           const ingestJson = await ingestRes.json();
+          clearInterval(timer);
+          
           if (!ingestRes.ok) {
             throw new Error(ingestJson.error || 'Ingestion failed');
           }
-          setIndexedCount(ingestJson.documentsCount ?? null);
-          clearInterval(timer);
+
           setProgress(100);
           setPhase('done');
+          
+          // Show success message with details
+          if (ingestJson.errors && ingestJson.errors.length > 0) {
+            setError(`Processed ${ingestJson.processedFiles}/${ingestJson.totalFiles} files successfully. Some files had issues: ${ingestJson.errors.join(', ')}`);
+          }
+          
           // Redirect to chat after short delay
           setTimeout(() => {
             router.push('/query');
-          }, 500);
+          }, 1500);
         } catch (e: any) {
           setError(e.message);
         } finally {
@@ -165,23 +189,25 @@ export const FileUpload = ({
   };
 
   const { getRootProps, isDragActive } = useDropzone({
-    multiple: false,
+    multiple: true,
     noClick: true,
+    maxFiles: 10,
     accept: {
       'application/pdf': ['.pdf'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'text/csv': ['.csv'],
       'application/csv': ['.csv']
     },
-    onDrop: (acceptedFiles, fileRejections, event) => {
-      // Assume single file, safe due to multiple: false
+    onDrop: (acceptedFiles, fileRejections) => {
       if (acceptedFiles.length > 0) {
         handleFileChange({ target: { files: acceptedFiles } } as any);
       }
     },
-    onDropRejected: (error) => {
-      console.log(error);
-      setError('Please upload only PDF, DOCX, or CSV files.');
+    onDropRejected: (rejections) => {
+      const errors = rejections.map(rejection => 
+        `${rejection.file.name}: ${rejection.errors.map(e => e.message).join(', ')}`
+      );
+      setError(`File validation failed: ${errors.join('; ')}`);
     },
   });
 
@@ -199,6 +225,7 @@ export const FileUpload = ({
           id="file-upload-handle"
           type="file"
           accept=".pdf,.docx,.csv"
+          multiple
           onChange={handleFileChange}
           className="hidden"
           disabled={uploading}
@@ -211,7 +238,7 @@ export const FileUpload = ({
             Upload file
           </p>
           <p className="relative z-20 font-sans font-normal text-neutral-400 dark:text-neutral-400 text-base mt-2">
-            Drag or drop your PDF, DOCX, or CSV files here or click to upload
+            Drag or drop your PDF, DOCX, or CSV files here or click to upload (max 10 files)
           </p>
           <div className="relative w-full mt-10 max-w-xl mx-auto">
             {files.length > 0 &&
@@ -284,11 +311,18 @@ export const FileUpload = ({
                     animate={{ opacity: 1 }}
                     className="text-neutral-600 flex flex-col items-center"
                   >
-                    Drop it
+                    Drop files here
                     <IconUpload className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
                   </motion.p>
                 ) : (
-                  <IconUpload className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
+                  <div className="flex flex-col items-center">
+                    <IconUpload className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
+                    {files.length > 0 && (
+                      <span className="text-xs text-neutral-500 mt-1">
+                        {files.length} file{files.length !== 1 ? 's' : ''} selected
+                      </span>
+                    )}
+                  </div>
                 )}
               </motion.div>
             )}
@@ -309,7 +343,11 @@ export const FileUpload = ({
         {(uploading || indexing) && (
           <div className="w-full max-w-xl mx-auto mt-6">
             <div className="flex items-center justify-between mb-2 text-sm text-neutral-600 dark:text-neutral-300">
-              <span>{phase === 'upload' ? 'Uploading…' : phase === 'ingest' ? 'Processing…' : 'Completed'}</span>
+              <span>
+                {phase === 'upload' ? `Uploading ${files.length} file${files.length > 1 ? 's' : ''}…` : 
+                 phase === 'ingest' ? `Processing ${files.length} file${files.length > 1 ? 's' : ''}…` : 
+                 'Completed'}
+              </span>
               <span>{progress}%</span>
             </div>
             <div className="w-full h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden">
@@ -318,6 +356,11 @@ export const FileUpload = ({
                 style={{ width: `${progress}%` }}
               />
             </div>
+            {uploadResults.length > 0 && (
+              <div className="mt-3 text-xs text-neutral-500">
+                Successfully uploaded: {uploadResults.map(f => f.originalName).join(', ')}
+              </div>
+            )}
           </div>
         )}
         <Button
@@ -328,7 +371,8 @@ export const FileUpload = ({
           )}
           disabled={uploading}
         >
-          {uploading ? 'Uploading...' : 'Upload'}
+          {uploading ? `Uploading ${files.length} file${files.length !== 1 ? 's' : ''}...` : 
+           files.length > 0 ? `Upload ${files.length} file${files.length !== 1 ? 's' : ''}` : 'Upload Files'}
         </Button>
         </div>
       </motion.div>
