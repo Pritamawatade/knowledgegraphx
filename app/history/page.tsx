@@ -2,7 +2,8 @@ import { auth } from '@clerk/nextjs/server';
 import { supabaseServer } from '@/lib/supabaseServer';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Clock, ArrowRight } from 'lucide-react';
+import { MessageSquare, Clock, ArrowRight, Download } from 'lucide-react';
+import { ExportButton } from '@/components/exportbutton';
 
 export default async function HistoryPage() {
   const { userId } = await auth();
@@ -56,12 +57,9 @@ export default async function HistoryPage() {
           <MessageSquare className="h-6 w-6 text-primary" />
           <h1 className="text-3xl font-bold tracking-tight">Your Chat History</h1>
         </div>
-        <Link href="/query">
-          <Button variant="default" size="sm">
-            New chat
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
+        {data && data.length > 0 && (
+          <ExportButton data={data} />
+        )}
       </div>
 
       {!data || data.length === 0 ? (
@@ -120,5 +118,3 @@ export default async function HistoryPage() {
     </div>
   );
 }
-
-
