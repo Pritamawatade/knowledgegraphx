@@ -14,6 +14,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 });
   }
 
+  // Validate file type
+  const allowedTypes = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'text/csv',
+    'application/csv'
+  ];
+  
+  if (!allowedTypes.includes(file.type)) {
+    return NextResponse.json({ 
+      error: 'Unsupported file type. Please upload PDF, DOCX, or CSV files only.' 
+    }, { status: 400 });
+  }
+
   const fileName = `${userId}/${Date.now()}-${file.name}`;
 
   const { data: uploadData, error: uploadError } = await supabaseServer.storage

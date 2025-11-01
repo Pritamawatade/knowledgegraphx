@@ -59,6 +59,26 @@ export const FileUpload = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/csv',
+      'application/csv'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+      setError('Please upload only PDF, DOCX, or CSV files.');
+      return;
+    }
+
+    // Validate file size (50MB limit)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      setError('File size must be less than 50MB.');
+      return;
+    }
+
     setUploading(true);
     setError(null);
     setProgress(0);
@@ -147,6 +167,12 @@ export const FileUpload = ({
   const { getRootProps, isDragActive } = useDropzone({
     multiple: false,
     noClick: true,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'text/csv': ['.csv'],
+      'application/csv': ['.csv']
+    },
     onDrop: (acceptedFiles, fileRejections, event) => {
       // Assume single file, safe due to multiple: false
       if (acceptedFiles.length > 0) {
@@ -155,6 +181,7 @@ export const FileUpload = ({
     },
     onDropRejected: (error) => {
       console.log(error);
+      setError('Please upload only PDF, DOCX, or CSV files.');
     },
   });
 
@@ -171,6 +198,7 @@ export const FileUpload = ({
           ref={fileInputRef}
           id="file-upload-handle"
           type="file"
+          accept=".pdf,.docx,.csv"
           onChange={handleFileChange}
           className="hidden"
           disabled={uploading}
@@ -183,7 +211,7 @@ export const FileUpload = ({
             Upload file
           </p>
           <p className="relative z-20 font-sans font-normal text-neutral-400 dark:text-neutral-400 text-base mt-2">
-            Drag or drop your files here or click to upload
+            Drag or drop your PDF, DOCX, or CSV files here or click to upload
           </p>
           <div className="relative w-full mt-10 max-w-xl mx-auto">
             {files.length > 0 &&
@@ -272,6 +300,12 @@ export const FileUpload = ({
               ></motion.div>
             )}
           </div>
+        {error && (
+          <div className="w-full max-w-xl mx-auto mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
         {(uploading || indexing) && (
           <div className="w-full max-w-xl mx-auto mt-6">
             <div className="flex items-center justify-between mb-2 text-sm text-neutral-600 dark:text-neutral-300">
