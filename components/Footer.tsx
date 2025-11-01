@@ -141,7 +141,7 @@ export default function Footer() {
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  PDF Chat
+                  DocWise
                 </span>
               </Link>
               <p className="mb-6 text-sm text-muted-foreground leading-relaxed">
@@ -249,7 +249,7 @@ export default function Footer() {
                 viewport={{ once: true }}
                 className="flex items-center gap-2 text-sm text-muted-foreground"
               >
-                <span>© 2025 PDF Chat. Made with</span>
+                <span>© 2025 DocWise. Made with</span>
                 <Heart className="h-4 w-4 text-red-500 animate-pulse" />
                 <span>by Team Pritam</span>
               </motion.div>

@@ -133,7 +133,7 @@ export default function ContactPage() {
               Get in Touch
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-300">
-              Have questions about PDF Chat? We'd love to hear from you.
+              Have questions about DocWise? We'd love to hear from you.
               <br />
               Send us a message and we'll respond as soon as possible.
             </p>
@@ -304,7 +304,7 @@ export default function ContactPage() {
             <div className="mb-8">
               <h2 className="mb-4 text-2xl font-bold">Frequently Asked Questions</h2>
               <p className="text-muted-foreground">
-                Quick answers to common questions about PDF Chat
+                Quick answers to common questions about DocWise
               </p>
             </div>
             <div className="space-y-4">

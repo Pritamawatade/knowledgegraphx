@@ -27,7 +27,7 @@ const glitchText = "404";
 const developmentMessages = [
   "Crafting something amazing...",
   "Brewing the perfect experience...",
-  "Building the future of PDF chat...",
+  "Building the future of DocWise...",
   "Polishing every pixel...",
   "Almost ready for you..."
 ];

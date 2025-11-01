@@ -125,15 +125,13 @@ const testimonials = [
         fill="white"
       />
       <div className="relative z-10 mx-auto w-full max-w-7xl p-4 pt-20 md:pt-0">
-        <h1 className="bg-opacity-50 bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text text-center text-4xl font-bold text-transparent md:text-7xl">
-          Chat <br /> with any documents.
+        <h1 className="bg-opacity-50 bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text text-center text-4xl font-bold text-transparent md:text-7xl capitalize">
+        CHAT <br /> with any documents.
         </h1>
-        <p className="text-center text-neutral-300 mt-4 text-lg">
-          Upload PDFs, Word documents (DOCX), or CSV files and get instant answers
-        </p>
+
         <div>
 
-          <TextGenerateEffect  className="text-white text-center" words="Do smartwork by turning your documents into a conversational learning resource" />
+          <TextGenerateEffect  className="text-white text-center" words="Upload Once. Ask Anything." />
         </div>
 
         <div className="mt-8 flex justify-center gap-4">
