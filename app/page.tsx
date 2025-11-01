@@ -199,13 +199,13 @@ const testimonials = [
       {/* Logos/Testimonials Strip */}
       <section className="border-t border-b bg-muted/40 py-8">
         <div className="container mx-auto px-6">
-          <div className="flex flex-wrap items-center justify-center gap-10 opacity-70">
+          {/* <div className="flex flex-wrap items-center justify-center gap-10 opacity-70">
             {['Acme Labs', 'Globex', 'Innotech', 'Umbrella', 'Stark AI'].map((n, i) => (
               <div key={i} className="text-sm font-medium tracking-wide">
                 {n}
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
       </section>
 

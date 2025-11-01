@@ -520,21 +520,26 @@ export default function QueryPage() {
         bg-card/95 backdrop-blur-xl border-r border-border/50
         shadow-2xl lg:shadow-none
       `}>
-        <div className="h-full flex flex-col">
+        <div className="h-full w-full flex flex-col bg-background">
           {/* Sidebar Header */}
-          <div className="p-4 border-b border-border/50 bg-gradient-to-r from-primary/5 to-primary/10">
+          <div className="flex-shrink-0 p-4 border-b border-border bg-card/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
                   <History className="w-4 h-4 text-primary" />
                 </div>
-                <h2 className="font-semibold text-foreground">Chat History</h2>
+                <div>
+                  <h2 className="font-semibold text-foreground text-sm">Chat History</h2>
+                  <p className="text-xs text-muted-foreground">
+                    {historyItems.length} conversation{historyItems.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowHistory(false)}
-                className="h-8 w-8 p-0 hover:bg-primary/20 lg:hidden"
+                className="h-8 w-8 p-0 hover:bg-muted lg:hidden rounded-md"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -542,25 +547,24 @@ export default function QueryPage() {
           </div>
 
           {/* History List */}
-          <ScrollArea className="flex-1">
-            <div className="p-3 space-y-3">
+          <ScrollArea className="flex-1 px-2">
+            <div className="py-2 space-y-4">
               {Object.entries(historyGroups).map(([groupKey, items]) => (
-                <div key={groupKey} className="space-y-2">
-                  <div className="px-3 py-1">
-                    <span className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wider">
+                <div key={groupKey} className="space-y-1">
+                  <div className="sticky top-0 bg-background/95 backdrop-blur-sm px-3 py-2 z-10">
+                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       {groupKey}
-                    </span>
+                    </h3>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 px-1">
                     {items.map((item) => (
-                      <Button
+                      <div
                         key={item.id}
-                        variant="ghost"
                         className={`
-                          group relative rounded-xl transition-all duration-200 cursor-pointer w-full text-left border-0 p-0 h-auto justify-start
+                          group relative rounded-lg transition-all duration-200 cursor-pointer
                           ${selectedHistoryId === item.id
-                            ? 'bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/30 shadow-sm'
-                            : 'hover:bg-muted/50 hover:shadow-sm'
+                            ? 'bg-primary/10 ring-1 ring-primary/20 shadow-sm'
+                            : 'hover:bg-muted/60'
                           }
                         `}
                         onClick={() => {
@@ -568,39 +572,85 @@ export default function QueryPage() {
                           setShowHistory(false);
                         }}
                       >
-                        <div className="p-3">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <p className="text-sm font-medium line-clamp-2 text-foreground/90 leading-relaxed">
+                        <div className="p-3 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-medium line-clamp-2 text-foreground leading-5 pr-2">
                               {item.question}
                             </p>
                             {selectedHistoryId === item.id && (
-                              <Badge variant="secondary" className="text-xs bg-primary/20 text-primary border-0">
+                              <Badge
+                                variant="secondary"
+                                className="text-xs bg-primary/20 text-primary border-0 px-2 py-0.5 font-medium flex-shrink-0"
+                              >
                                 Active
                               </Badge>
                             )}
                           </div>
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Clock className="w-3 h-3" />
-                            <span>{formatTimestamp(item.created_at)}</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Clock className="w-3 h-3" />
+                              <span>{formatTimestamp(item.created_at)}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => handleShareChat(item.id, e)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 hover:bg-primary/20"
+                            >
+                              {copiedShareId === item.id ? (
+                                <Check className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <Share2 className="h-3 w-3" />
+                              )}
+                            </Button>
                           </div>
                         </div>
-                      </Button>
+                      </div>
                     ))}
                   </div>
                 </div>
               ))}
 
               {historyItems.length === 0 && !loading && (
-                <div className="p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
-                    <History className="w-6 h-6 text-muted-foreground" />
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                  <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
+                    <History className="w-8 h-8 text-muted-foreground/60" />
                   </div>
-                  <p className="text-sm text-muted-foreground">No conversations yet</p>
-                  <p className="text-xs text-muted-foreground/60 mt-1">Start chatting to see your history</p>
+                  <h3 className="text-sm font-medium text-foreground mb-1">No conversations yet</h3>
+                  <p className="text-xs text-muted-foreground/80 max-w-[200px] leading-relaxed">
+                    Your chat history will appear here once you start asking questions
+                  </p>
+                </div>
+              )}
+
+              {loading && (
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                  <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4">
+                    <Loader2 className="w-8 h-8 text-muted-foreground/60 animate-spin" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">Loading conversations...</p>
                 </div>
               )}
             </div>
           </ScrollArea>
+
+          {/* Footer */}
+          <div className="flex-shrink-0 p-3 border-t border-border bg-card/30">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMessages([]);
+                setSelectedHistoryId(null);
+                setShowSuggestions(true);
+                setShowHistory(false);
+              }}
+              className="w-full h-9 text-xs font-medium hover:bg-primary/10 hover:border-primary/30"
+            >
+              <RotateCcw className="w-3 h-3 mr-2" />
+              New Conversation
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -635,7 +685,7 @@ export default function QueryPage() {
 
               <div className="flex-1 min-w-0">
                 <h1 className="text-lg lg:text-xl font-semibold text-foreground truncate">
-                  Document Assistant
+                  Docwise AI
                 </h1>
                 <p className="text-sm text-muted-foreground truncate hidden sm:block">
                   AI-powered document analysis and Q&A
@@ -754,7 +804,7 @@ export default function QueryPage() {
                         )}
 
                         <div className={`
-                          rounded-2xl p-4 lg:p-5 shadow-sm border transition-all duration-200 hover:shadow-md
+                          rounded-2xl p-4 lg:p-5 shadow-sm border transition-all duration-200 hover:shadow-md break-words overflow-wrap-anywhere
                           ${m.role === 'user'
                             ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-primary/20 ml-8 lg:ml-12'
                             : 'bg-gradient-to-br from-card to-card/50 border-border/50 mr-8 lg:mr-12'
