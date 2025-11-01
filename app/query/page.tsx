@@ -1,17 +1,15 @@
 "use client";
-/** @jsxImportSource react */
-import React from 'react';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
-import { ThumbsUp, ThumbsDown, Copy, Check, Send, FileText, Loader2, RotateCcw, History, X, ChevronLeft, ChevronRight, Clock, Code } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Copy, Check, Send, FileText, Loader2, RotateCcw, History, X, ChevronLeft, ChevronRight, Clock, Code, Sparkles, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-
+import React from "react"
 type ChatMessage = {
   role: 'user' | 'assistant' | 'separator';
   content: string;
@@ -40,28 +38,10 @@ export default function QueryPage() {
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-
-  if (!isSignedIn) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/20">
-        <Card className="w-full max-w-md mx-4 shadow-lg border-0 bg-card/50 backdrop-blur-sm">
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <FileText className="w-8 h-8 text-primary" />
-            </div>
-            <h1 className="text-2xl font-semibold mb-4 text-foreground">Please sign in to continue</h1>
-            <p className="text-muted-foreground mb-6">Access your document chat interface</p>
-            <Button asChild className="w-full">
-              <Link href="/">
-                Go to home page
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   // Load chat history on component mount
   useEffect(() => {
@@ -74,6 +54,26 @@ export default function QueryPage() {
           const data = await res.json();
           setHistoryItems(data.history || []);
 
+          // Check if there's a shared chat ID in URL
+          const urlParams = new URLSearchParams(window.location.search);
+          const sharedChatId = urlParams.get('chat');
+
+          if (sharedChatId) {
+            // Load the shared chat
+            const sharedChat = data.history.find((item: HistoryItem) => item.id === sharedChatId);
+            if (sharedChat) {
+              setSelectedHistoryId(sharedChat.id);
+              setMessages([
+                { role: 'user', content: sharedChat.question, timestamp: sharedChat.created_at },
+                { role: 'assistant', content: sharedChat.answer, timestamp: sharedChat.created_at }
+              ]);
+              setShowSuggestions(false);
+              // Clean up URL
+              window.history.replaceState({}, '', '/query');
+              return;
+            }
+          }
+
           // Load the most recent conversation by default
           if (data.history && data.history.length > 0) {
             const firstItem = data.history[0];
@@ -82,6 +82,10 @@ export default function QueryPage() {
               { role: 'user', content: firstItem.question, timestamp: firstItem.created_at },
               { role: 'assistant', content: firstItem.answer, timestamp: firstItem.created_at }
             ]);
+            setShowSuggestions(false);
+          } else {
+            // Generate smart suggestions for new users
+            generateSmartSuggestions();
           }
         }
       } catch (error) {
@@ -94,14 +98,52 @@ export default function QueryPage() {
     loadChatHistory();
   }, [isSignedIn]);
 
+  // Generate smart suggestions based on context
+  const generateSmartSuggestions = () => {
+    const defaultSuggestions = [
+      "What are the main topics covered in these documents?",
+      "Can you summarize the key findings?",
+      "What are the important dates mentioned?",
+      "Extract all the action items from the documents",
+      "What recommendations are provided?"
+    ];
+
+    // If there are recent queries, generate contextual suggestions
+    if (historyItems.length > 0) {
+      const recentTopics = historyItems.slice(0, 3).map(item => {
+        const words = item.question.split(' ');
+        return words.slice(0, 5).join(' ') + '...';
+      });
+
+      const contextualSuggestions = [
+        "Tell me more about the previous topic",
+        "What else should I know about this?",
+        "Are there any related sections?",
+        ...recentTopics
+      ];
+
+      setSuggestions(contextualSuggestions.slice(0, 4));
+    } else {
+      setSuggestions(defaultSuggestions.slice(0, 4));
+    }
+  };
+
+  useEffect(() => {
+    if (messages.length === 0 && !loading) {
+      generateSmartSuggestions();
+      setShowSuggestions(true);
+    }
+  }, [messages.length, loading, historyItems]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, sending]);
 
-  const sendMessage = async () => {
-    const question = input.trim();
+  const sendMessage = async (customQuestion?: string) => {
+    const question = (customQuestion || input).trim();
     if (!question || sending) return;
     setSending(true);
+    setShowSuggestions(false);
 
     // Add new message indicator if this is the first new message
     const isFirstNewMessage = messages.length > 0 && !messages.some(m => m.isNew);
@@ -110,7 +152,7 @@ export default function QueryPage() {
     }
 
     setMessages((prev) => [...prev, { role: 'user', content: question, isNew: true }]);
-    setInput('');
+    if (!customQuestion) setInput('');
 
     try {
       const res = await fetch('/api/query', {
@@ -172,6 +214,18 @@ export default function QueryPage() {
       setTimeout(() => setCopiedCodeIndex(null), 2000);
     } catch (err) {
       console.error('Failed to copy code: ', err);
+    }
+  };
+
+  const handleShareChat = async (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent loading the chat when clicking share
+    try {
+      const shareUrl = `${window.location.origin}/query?chat=${chatId}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedShareId(chatId);
+      setTimeout(() => setCopiedShareId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy share link: ', err);
     }
   };
 
@@ -373,6 +427,7 @@ export default function QueryPage() {
       { role: 'user', content: item.question, timestamp: item.created_at },
       { role: 'assistant', content: item.answer, timestamp: item.created_at }
     ]);
+    setShowSuggestions(false);
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -421,56 +476,112 @@ export default function QueryPage() {
 
   const historyGroups = groupHistoryByDate(historyItems);
 
-  return (
-    <div className="flex h-[calc(100vh-4rem)] max-w-7xl mx-auto">
-      {/* History Side Panel */}
-      <div className={`transition-all duration-300 ease-in-out border-r bg-muted/30 ${showHistory ? 'w-80' : 'w-0'} overflow-hidden`}>
-        <div className="h-full flex flex-col">
-          <div className="p-4 border-b bg-background/50 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <History className="w-5 h-5 text-primary" />
-              <h2 className="font-semibold">Chat History</h2>
+  // Render sign-in prompt if user is not authenticated
+  if (!isSignedIn) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/20">
+        <Card className="w-full max-w-md mx-4 shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <FileText className="w-8 h-8 text-primary" />
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowHistory(false)}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
+            <h1 className="text-2xl font-semibold mb-4 text-foreground">Please sign in to continue</h1>
+            <p className="text-muted-foreground mb-6">Access your document chat interface</p>
+            <Button asChild className="w-full">
+              <Link href="/">
+                Go to home page
+              </Link>
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
+      {/* Mobile Overlay */}
+      {showHistory && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setShowHistory(false)}
+        />
+      )}
+
+      {/* History Sidebar */}
+      <div className={`
+        fixed lg:relative inset-y-0 left-0 z-50 lg:z-0
+        w-80 lg:w-72 xl:w-80
+        transform transition-transform duration-300 ease-in-out
+        ${showHistory ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${showHistory ? 'lg:block' : 'lg:hidden'}
+        bg-card/95 backdrop-blur-xl border-r border-border/50
+        shadow-2xl lg:shadow-none
+      `}>
+        <div className="h-full flex flex-col">
+          {/* Sidebar Header */}
+          <div className="p-4 border-b border-border/50 bg-gradient-to-r from-primary/5 to-primary/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <History className="w-4 h-4 text-primary" />
+                </div>
+                <h2 className="font-semibold text-foreground">Chat History</h2>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(false)}
+                className="h-8 w-8 p-0 hover:bg-primary/20 lg:hidden"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
+          {/* History List */}
           <ScrollArea className="flex-1">
-            <div className="p-3 space-y-4">
+            <div className="p-3 space-y-3">
               {Object.entries(historyGroups).map(([groupKey, items]) => (
-                <div key={groupKey}>
-                  <div className="px-3 py-2">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div key={groupKey} className="space-y-2">
+                  <div className="px-3 py-1">
+                    <span className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wider">
                       {groupKey}
                     </span>
                   </div>
                   <div className="space-y-1">
-                    {items.map((item, idx) => (
-                      <button
-                        key={item.id || idx}
-                        onClick={() => loadHistoryConversation(item)}
-                        className={`w-full text-left p-3 rounded-lg transition-all duration-200 hover:bg-background/80 group ${selectedHistoryId === item.id ? 'bg-primary/10 border border-primary/20' : 'hover:border hover:border-border'
-                          }`}
+                    {items.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`
+                          group relative rounded-xl transition-all duration-200 cursor-pointer
+                          ${selectedHistoryId === item.id
+                            ? 'bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/30 shadow-sm'
+                            : 'hover:bg-muted/50 hover:shadow-sm'
+                          }
+                        `}
+                        onClick={() => {
+                          loadHistoryConversation(item);
+                          setShowHistory(false);
+                        }}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="text-sm font-medium line-clamp-2 flex-1">
-                            {item.question}
-                          </p>
-                          {selectedHistoryId === item.id && (
-                            <Badge variant="secondary" className="text-xs shrink-0">Active</Badge>
-                          )}
+                        <div className="p-3">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <p className="text-sm font-medium line-clamp-2 text-foreground/90 leading-relaxed">
+                              {item.question}
+                            </p>
+                            {selectedHistoryId === item.id && (
+                              <Badge variant="secondary" className="text-xs bg-primary/20 text-primary border-0">
+                                Active
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            <span>{formatTimestamp(item.created_at)}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          <span>{formatTimestamp(item.created_at)}</span>
-                        </div>
-                      </button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -478,8 +589,11 @@ export default function QueryPage() {
 
               {historyItems.length === 0 && !loading && (
                 <div className="p-8 text-center">
-                  <History className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">No chat history yet</p>
+                  <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
+                    <History className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">No conversations yet</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">Start chatting to see your history</p>
                 </div>
               )}
             </div>
@@ -487,31 +601,44 @@ export default function QueryPage() {
         </div>
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex flex-col flex-1">
+      {/* Main Chat Container */}
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b">
-          <div className="px-6 py-4">
+        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
+          <div className="px-4 lg:px-6 py-4">
             <div className="flex items-center gap-3">
-              {!showHistory && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowHistory(true)}
-                  className="shrink-0"
-                >
-                  <ChevronRight className="w-4 h-4 mr-2" />
-                  History
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+                className="lg:hidden"
+              >
+                <ChevronRight className={`w-4 h-4 transition-transform ${showHistory ? 'rotate-180' : ''}`} />
+              </Button>
 
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+                className="hidden lg:flex"
+              >
+                <ChevronRight className={`w-4 h-4 mr-2 transition-transform ${showHistory ? 'rotate-180' : ''}`} />
+                {showHistory ? 'Hide' : 'Show'} History
+              </Button>
+
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                 <FileText className="w-5 h-5 text-primary" />
               </div>
+
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-semibold text-foreground truncate">Document Chat</h1>
-                <p className="text-sm text-muted-foreground truncate">Ask questions about your uploaded PDFs</p>
+                <h1 className="text-lg lg:text-xl font-semibold text-foreground truncate">
+                  Document Assistant
+                </h1>
+                <p className="text-sm text-muted-foreground truncate hidden sm:block">
+                  AI-powered document analysis and Q&A
+                </p>
               </div>
+
               {messages.length > 0 && (
                 <Button
                   variant="outline"
@@ -519,8 +646,9 @@ export default function QueryPage() {
                   onClick={() => {
                     setMessages([]);
                     setSelectedHistoryId(null);
+                    setShowSuggestions(true);
                   }}
-                  className="shrink-0"
+                  className="hidden sm:flex hover:bg-primary/10 hover:border-primary/30"
                 >
                   <RotateCcw className="w-4 h-4 mr-2" />
                   New Chat
@@ -530,162 +658,215 @@ export default function QueryPage() {
           </div>
         </div>
 
-        {/* Chat Messages */}
-        <ScrollArea className="flex-1 px-6">
-          <div className="py-6 space-y-6">
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Loading your chat history...</p>
-              </div>
-            )}
-
-            {!loading && messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in-50 duration-500">
-                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-                  <FileText className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">Start a conversation</h3>
-                <p className="text-muted-foreground max-w-md">
-                  Ask any question about your uploaded documents and get instant answers with source references.
-                </p>
-              </div>
-            )}
-
-            {messages.map((m, idx) => {
-              // Render separator
-              if (m.role === 'separator') {
-                return (
-                  <div key={idx} className="flex items-center justify-center py-4">
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <Separator className="flex-1 max-w-20" />
-                      <Badge variant="outline" className="text-xs">
-                        {m.content}
-                      </Badge>
-                      <Separator className="flex-1 max-w-20" />
-                    </div>
+        {/* Chat Messages Area */}
+        <div className="flex-1 relative overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="px-4 lg:px-6 py-6 max-w-4xl mx-auto">
+              {loading && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   </div>
-                );
-              }
+                  <p className="text-muted-foreground">Loading your conversations...</p>
+                </div>
+              )}
 
-              return (
-                <div
-                  key={idx}
-                  className={`flex w-full transition-all duration-500 ${m.role === 'user' ? 'justify-end' : 'justify-start'
-                    } ${m.isNew ? 'animate-in slide-in-from-bottom-4' : 'opacity-75 hover:opacity-100'}`}
-                  style={{ animationDelay: m.isNew ? `${idx * 100}ms` : '0ms' }}
-                >
-                  <div className={`max-w-[85%] ${m.role === 'assistant' ? 'group' : ''}`}>
-                    <Card className={`shadow-sm border-0 transition-all duration-200 hover:shadow-md ${m.role === 'user'
-                      ? `ml-12 ${m.isNew ? 'bg-primary text-primary-foreground' : 'bg-primary/80 text-primary-foreground'}`
-                      : `mr-12 ${m.isNew ? 'bg-muted/50' : 'bg-muted/30'}`
-                      }`}>
-                      <CardContent className="p-4">
-                        <div className="whitespace-pre-wrap leading-relaxed text-sm">
-                          {m.role === 'assistant' ? formatMessageContent(m.content, idx) : m.content}
+              {!loading && messages.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 lg:py-20 text-center animate-in fade-in-50 duration-500">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mb-6">
+                    <FileText className="w-10 h-10 text-primary" />
+                  </div>
+                  <h3 className="text-xl lg:text-2xl font-semibold text-foreground mb-3">
+                    Ready to explore your documents?
+                  </h3>
+                  <p className="text-muted-foreground max-w-md mb-8 leading-relaxed">
+                    Ask questions, get summaries, or explore insights from your uploaded documents with AI assistance.
+                  </p>
+
+                  {/* Enhanced Suggestions */}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="w-full max-w-3xl animate-in slide-in-from-bottom-8 duration-700">
+                      <div className="flex items-center gap-2 mb-6 justify-center">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                        <span className="text-sm font-medium text-muted-foreground">Try these questions</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {suggestions.map((suggestion, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => sendMessage(suggestion)}
+                            disabled={sending}
+                            className="group text-left p-5 rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 hover:from-primary/5 hover:to-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                            style={{ animationDelay: `${idx * 100}ms` }}
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                                <Sparkles className="w-4 h-4 text-primary" />
+                              </div>
+                              <span className="text-sm text-foreground/80 group-hover:text-foreground transition-colors leading-relaxed">
+                                {suggestion}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Messages */}
+              <div className="space-y-6">
+                {messages.map((m, idx) => {
+                  if (m.role === 'separator') {
+                    return (
+                      <div key={idx} className="flex items-center justify-center py-6">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <div className="h-px bg-border flex-1 max-w-20" />
+                          <Badge variant="outline" className="text-xs bg-background">
+                            {m.content}
+                          </Badge>
+                          <div className="h-px bg-border flex-1 max-w-20" />
                         </div>
+                      </div>
+                    );
+                  }
 
-                        {m.role === 'assistant' && m.sources && m.sources.length > 0 && (
-                          <>
-                            <Separator className="my-3" />
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2">
-                                <FileText className="w-3 h-3 text-muted-foreground" />
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex w-full ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-4 duration-500`}
+                      style={{ animationDelay: m.isNew ? `${idx * 100}ms` : '0ms' }}
+                    >
+                      <div className={`max-w-[85%] lg:max-w-[75%] ${m.role === 'assistant' ? 'group' : ''}`}>
+                        {/* Avatar for assistant */}
+                        {m.role === 'assistant' && (
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                              <FileText className="w-4 h-4 text-primary" />
+                            </div>
+                            <span className="text-xs font-medium text-muted-foreground">AI Assistant</span>
+                          </div>
+                        )}
+
+                        <div className={`
+                          rounded-2xl p-4 lg:p-5 shadow-sm border transition-all duration-200 hover:shadow-md
+                          ${m.role === 'user'
+                            ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-primary/20 ml-8 lg:ml-12'
+                            : 'bg-gradient-to-br from-card to-card/50 border-border/50 mr-8 lg:mr-12'
+                          }
+                        `}>
+                          <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:bg-muted/50 prose-code:bg-muted/50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
+                            {m.role === 'assistant' ? formatMessageContent(m.content, idx) : m.content}
+                          </div>
+
+                          {/* Sources */}
+                          {m.role === 'assistant' && m.sources && m.sources.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-border/30">
+                              <div className="flex items-center gap-2 mb-3">
+                                <FileText className="w-4 h-4 text-muted-foreground" />
                                 <span className="text-xs font-medium text-muted-foreground">Sources</span>
                               </div>
-                              <div className="flex flex-wrap gap-1">
+                              <div className="flex flex-wrap gap-2">
                                 {m.sources.map((s, i) => (
-                                  <Badge key={i} variant="secondary" className="text-xs">
+                                  <Badge key={i} variant="secondary" className="text-xs bg-muted/50 hover:bg-muted transition-colors">
                                     {s.file}{s.page ? ` (p. ${s.page})` : ''}
                                   </Badge>
                                 ))}
                               </div>
                             </div>
-                          </>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    {/* Action buttons for assistant messages */}
-                    {m.role === 'assistant' && (
-                      <div className="flex items-center gap-1 mt-2 ml-2 opacity-0 group-hover:opacity-100 transition-all duration-200 animate-in slide-in-from-left-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleLike(idx)}
-                          className={`h-8 w-8 p-0 transition-all duration-200 hover:scale-110 ${m.liked ? 'text-green-600 bg-green-50 hover:bg-green-100 dark:bg-green-900/20' : 'hover:text-green-600'
-                            }`}
-                        >
-                          <ThumbsUp className="h-3 w-3" />
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDislike(idx)}
-                          className={`h-8 w-8 p-0 transition-all duration-200 hover:scale-110 ${m.disliked ? 'text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20' : 'hover:text-red-600'
-                            }`}
-                        >
-                          <ThumbsDown className="h-3 w-3" />
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopy(m.content, idx)}
-                          className={`h-8 w-8 p-0 transition-all duration-200 hover:scale-110 ${copiedIndex === idx ? 'text-green-600 bg-green-50 hover:bg-green-100 dark:bg-green-900/20' : 'hover:text-primary'
-                            }`}
-                        >
-                          {copiedIndex === idx ? (
-                            <Check className="h-3 w-3" />
-                          ) : (
-                            <Copy className="h-3 w-3" />
                           )}
-                        </Button>
+                        </div>
+
+                        {/* Action Buttons */}
+                        {m.role === 'assistant' && (
+                          <div className="flex items-center gap-1 mt-3 ml-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleLike(idx)}
+                              className={`h-8 w-8 p-0 rounded-full transition-all duration-200 hover:scale-110 ${m.liked ? 'text-green-600 bg-green-50 hover:bg-green-100 dark:bg-green-900/20' : 'hover:text-green-600 hover:bg-green-50'
+                                }`}
+                            >
+                              <ThumbsUp className="h-3.5 w-3.5" />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDislike(idx)}
+                              className={`h-8 w-8 p-0 rounded-full transition-all duration-200 hover:scale-110 ${m.disliked ? 'text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20' : 'hover:text-red-600 hover:bg-red-50'
+                                }`}
+                            >
+                              <ThumbsDown className="h-3.5 w-3.5" />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCopy(m.content, idx)}
+                              className={`h-8 w-8 p-0 rounded-full transition-all duration-200 hover:scale-110 ${copiedIndex === idx ? 'text-green-600 bg-green-50 hover:bg-green-100 dark:bg-green-900/20' : 'hover:text-primary hover:bg-primary/10'
+                                }`}
+                            >
+                              {copiedIndex === idx ? (
+                                <Check className="h-3.5 w-3.5" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
-            {sending && (
-              <div className="flex w-full justify-start animate-in slide-in-from-bottom-4 duration-300">
-                <Card className="max-w-[85%] shadow-sm border-0 bg-muted/50 mr-12">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Thinking...</span>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                  );
+                })}
 
-            <div ref={bottomRef} />
-          </div>
-        </ScrollArea>
+                {/* Typing Indicator */}
+                {sending && (
+                  <div className="flex justify-start animate-in slide-in-from-bottom-4 duration-300">
+                    <div className="max-w-[85%] lg:max-w-[75%]">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                          <FileText className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground">AI Assistant</span>
+                      </div>
+                      <div className="rounded-2xl p-4 lg:p-5 bg-gradient-to-br from-card to-card/50 border border-border/50 mr-8 lg:mr-12">
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          <span className="text-sm text-muted-foreground">Analyzing your documents...</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div ref={bottomRef} />
+            </div>
+          </ScrollArea>
+        </div>
 
         {/* Input Area */}
-        <div className="sticky bottom-0 bg-background/80 backdrop-blur-md border-t p-6">
-          <Card className="shadow-lg border-0 bg-card/50">
-            <CardContent className="p-4">
-              <div className="flex gap-3 items-end">
+        <div className="sticky bottom-0 bg-background/80 backdrop-blur-xl border-t border-border/50 p-4 lg:p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative">
+              <div className="flex gap-3 items-end p-4 rounded-2xl bg-gradient-to-br from-card to-card/50 border border-border/50 shadow-lg">
                 <div className="flex-1">
                   <Textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask a question about your documents..."
-                    className="min-h-[44px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
+                    placeholder="Ask anything about your documents..."
+                    className="min-h-[44px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm placeholder:text-muted-foreground/60"
                     rows={1}
                   />
                 </div>
                 <Button
-                  onClick={sendMessage}
+                  onClick={() => sendMessage()}
                   disabled={sending || !input.trim()}
                   size="sm"
-                  className="h-11 px-4 transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
+                  className="h-11 w-11 p-0 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:hover:scale-100"
                 >
                   {sending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -694,8 +875,25 @@ export default function QueryPage() {
                   )}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+
+              {/* Mobile New Chat Button */}
+              {messages.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setMessages([]);
+                    setSelectedHistoryId(null);
+                    setShowSuggestions(true);
+                  }}
+                  className="sm:hidden absolute -top-12 right-0 bg-background/80 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/30"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  New
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
