@@ -502,9 +502,11 @@ export default function QueryPage() {
     <div className="h-screen flex bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
       {/* Mobile Overlay */}
       {showHistory && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        <Button
+          variant="ghost"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden cursor-pointer border-0 p-0 h-full w-full rounded-none"
           onClick={() => setShowHistory(false)}
+          aria-label="Close sidebar"
         />
       )}
 
@@ -551,10 +553,11 @@ export default function QueryPage() {
                   </div>
                   <div className="space-y-1">
                     {items.map((item) => (
-                      <div
+                      <Button
                         key={item.id}
+                        variant="ghost"
                         className={`
-                          group relative rounded-xl transition-all duration-200 cursor-pointer
+                          group relative rounded-xl transition-all duration-200 cursor-pointer w-full text-left border-0 p-0 h-auto justify-start
                           ${selectedHistoryId === item.id
                             ? 'bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/30 shadow-sm'
                             : 'hover:bg-muted/50 hover:shadow-sm'
@@ -581,7 +584,7 @@ export default function QueryPage() {
                             <span>{formatTimestamp(item.created_at)}</span>
                           </div>
                         </div>
-                      </div>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -692,11 +695,12 @@ export default function QueryPage() {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {suggestions.map((suggestion, idx) => (
-                          <button
+                          <Button
                             key={idx}
                             onClick={() => sendMessage(suggestion)}
                             disabled={sending}
-                            className="group text-left p-5 rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 hover:from-primary/5 hover:to-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                            variant="ghost"
+                            className="group text-left p-5 rounded-2xl border border-border/50 bg-gradient-to-br from-card to-card/50 hover:from-primary/5 hover:to-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] h-auto"
                             style={{ animationDelay: `${idx * 100}ms` }}
                           >
                             <div className="flex items-start gap-4">
@@ -707,7 +711,7 @@ export default function QueryPage() {
                                 {suggestion}
                               </span>
                             </div>
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </div>

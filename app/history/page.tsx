@@ -1,13 +1,63 @@
-import { auth } from '@clerk/nextjs/server';
-import { supabaseServer } from '@/lib/supabaseServer';
+"use client";
+import { useUser } from '@clerk/nextjs';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Clock, ArrowRight, Download } from 'lucide-react';
+import { MessageSquare, Clock, ArrowRight, Trash, Loader2 } from 'lucide-react';
 import { ExportButton } from '@/components/exportbutton';
 
-export default async function HistoryPage() {
-  const { userId } = await auth();
-  if (!userId) {
+export default function HistoryPage() {
+  const { isSignedIn, user } = useUser();
+  const [data, setData] = useState<Array<{ id: string; question: string; answer: string; created_at: string }> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!isSignedIn) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/chat-history');
+        if (response.ok) {
+          const result = await response.json();
+          setData(result.history || []);
+        } else {
+          setError('Failed to load history');
+        }
+      } catch (err) {
+        setError('Failed to load history');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [isSignedIn]);
+
+  const deleteChat = async (id: string) => {
+    setDeleting(id);
+    try {
+      const response = await fetch(`/api/chat-history/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setData(prev => prev ? prev.filter(item => item.id !== id) : []);
+      } else {
+        console.error('Failed to delete chat');
+      }
+    } catch (err) {
+      console.error('Failed to delete chat:', err);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  if (!isSignedIn) {
     return (
       <div className="p-8 mx-auto max-w-3xl">
         <div className="flex items-center gap-3">
@@ -19,13 +69,19 @@ export default async function HistoryPage() {
     );
   }
 
-  const { data, error } = await supabaseServer
-    .from('query_history')
-    .select('id, question, answer, created_at')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(50);
-
+  if (loading) {
+    return (
+      <div className="p-8 mx-auto max-w-3xl">
+        <div className="flex items-center gap-3">
+          <MessageSquare className="h-6 w-6 text-primary" />
+          <h1 className="text-3xl font-bold tracking-tight">History</h1>
+        </div>
+        <div className="mt-6 flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
   if (error) {
     return (
       <div className="p-8 mx-auto max-w-3xl">
@@ -82,7 +138,7 @@ export default async function HistoryPage() {
         </div>
       ) : (
         <ul className="mt-8 space-y-4">
-          {(data as Array<{ id: string; question: string; answer: string; created_at: string }>).map((row) => (
+          {data.map((row) => (
             <li key={row.id} className="group rounded-xl border bg-background transition-colors hover:bg-accent/40">
               <div className="p-5">
                 <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
@@ -93,6 +149,22 @@ export default async function HistoryPage() {
                   <div className="inline-flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     <span>{new Date(row.created_at).toLocaleString()}</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2">
+
+                    <Button
+                      onClick={() => deleteChat(row.id)}
+                      disabled={deleting === row.id}
+                      variant="destructive"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                    >
+                      {deleting === row.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
                 </div>
 

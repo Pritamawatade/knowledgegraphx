@@ -26,7 +26,7 @@ export default function Navbar() {
           href="/" 
           className="flex items-center space-x-2 font-bold text-xl bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent hover:from-primary/80 hover:to-primary transition-all duration-300"
         >
-          <FileText className="h-6 w-6 text-primary" />
+          {/* <FileText className="h-6 w-6 text-primary" /> */}
           <span>DocWise</span>
         </Link>
 
