@@ -3,6 +3,8 @@ import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
 import { ThumbsUp, ThumbsDown, Copy, Check, Send, FileText, Loader2, RotateCcw, History, X, ChevronLeft, ChevronRight, Clock, Code, Sparkles, Share2 } from 'lucide-react';
+import { DataChart } from '@/components/ui/data-chart';
+import { extractNumericalData, shouldGenerateChart } from '@/lib/chart-utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +20,7 @@ type ChatMessage = {
   disliked?: boolean;
   isNew?: boolean;
   timestamp?: string;
+  userQuery?: string; // Store the user query for context in assistant messages
 };
 
 type HistoryItem = {
@@ -65,7 +68,7 @@ export default function QueryPage() {
               setSelectedHistoryId(sharedChat.id);
               setMessages([
                 { role: 'user', content: sharedChat.question, timestamp: sharedChat.created_at },
-                { role: 'assistant', content: sharedChat.answer, timestamp: sharedChat.created_at }
+                { role: 'assistant', content: sharedChat.answer, timestamp: sharedChat.created_at, userQuery: sharedChat.question }
               ]);
               setShowSuggestions(false);
               // Clean up URL
@@ -80,7 +83,7 @@ export default function QueryPage() {
             setSelectedHistoryId(firstItem.id);
             setMessages([
               { role: 'user', content: firstItem.question, timestamp: firstItem.created_at },
-              { role: 'assistant', content: firstItem.answer, timestamp: firstItem.created_at }
+              { role: 'assistant', content: firstItem.answer, timestamp: firstItem.created_at, userQuery: firstItem.question }
             ]);
             setShowSuggestions(false);
           } else {
@@ -103,8 +106,10 @@ export default function QueryPage() {
     const defaultSuggestions = [
       "What are the main topics covered in these documents?",
       "Can you summarize the key findings?",
-      "What are the important dates mentioned?",
+      "Show me the population breakdown by region",
+      "What are the revenue figures by quarter?",
       "Extract all the action items from the documents",
+      "What are the market share percentages?",
       "What recommendations are provided?"
     ];
 
@@ -163,7 +168,7 @@ export default function QueryPage() {
       const data = await res.json();
       const answer: string = data.answer || '';
       const sources: Array<{ file: string; page: number | null }> = Array.isArray(data.sources) ? data.sources : [];
-      setMessages((prev) => [...prev, { role: 'assistant', content: answer, sources, isNew: true }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: answer, sources, isNew: true, userQuery: question }]);
 
       // Refresh history after new message
       const historyRes = await fetch('/api/chat-history');
@@ -229,10 +234,18 @@ export default function QueryPage() {
     }
   };
 
-  const formatMessageContent = (content: string, messageIndex: number) => {
+  const formatMessageContent = (content: string, messageIndex: number, userQuery?: string) => {
     const parts: React.ReactElement[] = [];
     let currentIndex = 0;
     let partKey = 0;
+
+    // Check if we should generate a chart for this content
+    const shouldChart = shouldGenerateChart(content, userQuery);
+    let chartData = null;
+    
+    if (shouldChart) {
+      chartData = extractNumericalData(content);
+    }
 
     // Regex to match code blocks with optional language
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
@@ -296,6 +309,18 @@ export default function QueryPage() {
         <div key={`text-${partKey++}`}>
           {formatInlineMarkdown(textAfter)}
         </div>
+      );
+    }
+
+    // Add chart if we have valid data
+    if (chartData) {
+      parts.push(
+        <DataChart
+          key={`chart-${partKey++}`}
+          data={chartData.data}
+          title={chartData.title}
+          type={chartData.type}
+        />
       );
     }
 
@@ -425,7 +450,7 @@ export default function QueryPage() {
     setSelectedHistoryId(item.id);
     setMessages([
       { role: 'user', content: item.question, timestamp: item.created_at },
-      { role: 'assistant', content: item.answer, timestamp: item.created_at }
+      { role: 'assistant', content: item.answer, timestamp: item.created_at, userQuery: item.question }
     ]);
     setShowSuggestions(false);
   };
@@ -811,7 +836,7 @@ export default function QueryPage() {
                           }
                         `}>
                           <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:bg-muted/50 prose-code:bg-muted/50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
-                            {m.role === 'assistant' ? formatMessageContent(m.content, idx) : m.content}
+                            {m.role === 'assistant' ? formatMessageContent(m.content, idx, m.userQuery) : m.content}
                           </div>
 
                           {/* Sources */}
