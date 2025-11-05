@@ -72,6 +72,7 @@ export async function POST(request) {
   const collectionName = meta.user_id;
   const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
     url: qdrantUrl,
+    apiKey: process.env.QDRANT_API_KEY,
     collectionName,
   });
 
