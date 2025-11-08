@@ -96,6 +96,8 @@ export const FileUpload = ({
         formData.append('files', file);
       });
 
+      // console.log(formData.get('files'));
+
       // Upload all files
       const uploadJson = await new Promise<any>((resolve, reject) => {
         const xhr = new XMLHttpRequest();

@@ -113,7 +113,6 @@ export async function POST(request) {
     await fs.unlink(localFileName);
   } catch {}
 
-  console.log("indexing done");
   return new Response(
     JSON.stringify({ success: true, documentsCount: enrichedDocs.length }),
     { status: 200 }

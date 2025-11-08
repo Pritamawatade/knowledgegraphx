@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { ModeToggle } from "./toggle-theme";
 import { Button } from "@/components/ui/button";
 import { 
@@ -13,11 +13,45 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { FileText, Upload, MessageCircle, Phone, Mail, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, isSignedIn, isLoaded } = useUser();
+  const [userInserted, setUserInserted] = useState(false);
 
+  useEffect(() => {
+    if(isSignedIn && isLoaded && user && !userInserted) {
+      const insertUser = async () => {
+        try {
+          const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: user.fullName,
+              email: user.emailAddresses[0]?.emailAddress,
+              avatar_url: user.imageUrl,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            console.error('Error inserting/updating user:', result.error);
+            console.error('Error details:', result.details);
+          } else {
+            setUserInserted(true);
+          }
+        } catch (error) {
+          console.error('Failed to insert/update user:', error);
+        }
+      };
+
+      insertUser();
+    }
+  }, [isSignedIn, isLoaded, user, userInserted]);
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
