@@ -30,7 +30,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body
-          className={``}
+          className={`selection:bg-green-500 selection:text-white`}
         >
           <ThemeProvider
             attribute="class"

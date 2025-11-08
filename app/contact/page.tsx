@@ -102,16 +102,43 @@ export default function ContactPage() {
     setIsSubmitting(true);
     
     // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    // await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const body = {
+      name: formData.name,
+      email: formData.email,
+      subject: formData.subject,
+      message: formData.message,
+    }
+
+    console.log(`body = ${body}`)
+    try {
+      const response = await fetch('/api/contact-us', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+      })
+
+      const data = await response.json();
+
+      console.log(`data = ${data}`)
+      if(!response.ok){
+        console.log(`Error inserting user message, ${data.error}`)
+        console.log(`error details ${data.details}`)
+      }
+    } catch (error) {
+      console.log(`failed to insert user message ${error}`)
+    }
     setIsSubmitting(false);
     setIsSubmitted(true);
     
     // Reset form after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: "", email: "", subject: "", message: "" });
-    }, 3000);
+    // setTimeout(() => {
+    //   setIsSubmitted(false);
+    //   setFormData({ name: "", email: "", subject: "", message: "" });
+    // }, 3000);
   };
 
   return (
