@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Spotlight } from "@/components/ui/spotlight";
-import { CanvasRevealEffect } from "@/components/ui/canvas-reveal-effect";
 import { FlipWords } from "@/components/ui/flip-words";
 import { 
   Github, 

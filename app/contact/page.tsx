@@ -181,9 +181,9 @@ export default function ContactPage() {
             >
               <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer">
                 <a href={info.href} className="block">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${info.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`} />
+                  <div className={`absolute inset-0 bg-linear-to-br ${info.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`} />
                   <CardContent className="relative p-6">
-                    <div className={`mb-4 inline-flex rounded-lg bg-gradient-to-r ${info.gradient} p-3`}>
+                    <div className={`mb-4 inline-flex rounded-lg bg-linear-to-r ${info.gradient} p-3`}>
                       <info.icon className="h-6 w-6 text-white" />
                     </div>
                     <h3 className="mb-2 font-semibold">{info.title}</h3>

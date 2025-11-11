@@ -269,7 +269,7 @@ export default function NotFound() {
           </motion.div>
           <p className="text-sm text-muted-foreground">
             <strong>Fun Fact:</strong> While you wait, our AI is learning to understand documents better! 
-            Soon you'll be able to chat with your PDFs in ways you never imagined.
+            Soon you&apos; ll be able to chat with your PDFs in ways you never imagined.
           </p>
         </motion.div>
       </div>

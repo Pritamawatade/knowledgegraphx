@@ -1,18 +1,19 @@
 "use client";
 import { useUser } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
+import { Suspense, use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Clock, ArrowRight, Trash, Loader2 } from 'lucide-react';
 import { ExportButton } from '@/components/exportbutton';
 
 export default function HistoryPage() {
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
   const [data, setData] = useState<Array<{ id: string; question: string; answer: string; created_at: string }> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
 
+  let query_msg: any = null;
   useEffect(() => {
     const fetchHistory = async () => {
       if (!isSignedIn) {
@@ -25,18 +26,22 @@ export default function HistoryPage() {
         if (response.ok) {
           const result = await response.json();
           setData(result.history || []);
+          return result.history;
         } else {
           setError('Failed to load history');
         }
       } catch (err) {
         setError('Failed to load history');
+        console.error('Failed to load history:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchHistory();
+    query_msg =  fetchHistory();
   }, [isSignedIn]);
+
+  use(query_msg);
 
   const deleteChat = async (id: string) => {
     setDeleting(id);
@@ -118,6 +123,16 @@ export default function HistoryPage() {
         )}
       </div>
 
+      <Suspense fallback={<div>Loading...</div>}>
+        <div className="mt-8 rounded-lg border bg-background">
+          <div className="p-8 text-center">
+            <MessageSquare className="mx-auto h-10 w-10 text-muted-foreground" />
+            <h2 className="mt-4 text-lg font-semibold">No chats yet</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Your recent conversations will appear here once you start asking questions
+            </p>
+          </div>
+
       {!data || data.length === 0 ? (
         <div className="mt-8 rounded-lg border bg-background">
           <div className="p-8 text-center">
@@ -187,6 +202,8 @@ export default function HistoryPage() {
           ))}
         </ul>
       )}
+        </div>
+        </Suspense>
     </div>
   );
 }
