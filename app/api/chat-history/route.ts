@@ -8,8 +8,8 @@ export async function GET(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { data, error } = await supabaseServer
-      .from('query_history')
-      .select('id, question, answer, created_at')
+    .from('query_history')
+    .select('id, question, answer, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50); // Limit to last 50 conversations

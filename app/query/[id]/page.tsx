@@ -1,3 +1,4 @@
+"use client";
 import { auth } from '@clerk/nextjs/server';
 import { supabaseServer } from '@/lib/supabaseServer';
 import Link from 'next/link';
@@ -11,18 +12,23 @@ type PageProps = {
 };
 
 export default async function ChatByIdPage({ params }: PageProps) {
-  const { userId } = await auth();
-  if (!userId) redirect('/query');
+  // const { userId } = await auth();
+  // if (!userId) redirect('/query');
 
-  const { data, error } = await supabaseServer
-    .from('query_history')
-    .select('id, question, answer, user_id, created_at')
-    .eq('id', params.id)
-    .single();
+  // const { data, error } = await supabaseServer
+  //   .from('query_history')
+  //   .select('id, question, answer, user_id, created_at')
+  //   .eq('id', params.id)
+  //   .single();
 
-  if (error || !data || data.user_id !== userId) {
-    notFound();
-  }
+  // if (error || !data || data.user_id !== userId) {
+  //   notFound();
+
+  
+  // }
+
+  const {id} = params;
+
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] max-w-3xl mx-auto px-4">
@@ -37,10 +43,12 @@ export default async function ChatByIdPage({ params }: PageProps) {
               <ArrowLeft className="h-4 w-4" /> Back to history
             </Button>
           </Link>
+
+          <h1>${id}</h1>
         </div>
       </div>
 
-      <ClientChat initialQuestion={data.question} initialAnswer={data.answer} />
+      {/* <ClientChat initialQuestion={data.question} initialAnswer={data.answer} /> */}
     </div>
   );
 }

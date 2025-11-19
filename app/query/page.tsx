@@ -684,7 +684,7 @@ export default function QueryPage() {
 
               <div className="flex-1 min-w-0">
                 <h1 className="text-lg lg:text-xl font-semibold text-foreground truncate">
-                  Docwise AI
+                  PrepIQ AI
                 </h1>
                 <p className="text-sm text-muted-foreground truncate hidden sm:block">
                   AI-powered document analysis and Q&A
