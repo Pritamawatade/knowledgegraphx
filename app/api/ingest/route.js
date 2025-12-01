@@ -11,7 +11,7 @@ import { QdrantVectorStore } from '@langchain/qdrant';
 
 export async function POST(request) {
   const { metadataId } = await request.json();
-  
+
   // 1. get metadata about the file
   const { data: meta, error: metaErr } = await supabaseServer
     .from('documents_metadata')
@@ -45,7 +45,7 @@ export async function POST(request) {
   // 4. load document via LangChain loader based on file type
   let loader;
   const fileExtension = path.extname(safeBaseName).toLowerCase();
-  
+
   switch (fileExtension) {
     case '.pdf':
       loader = new PDFLoader(localFileName);
@@ -58,16 +58,16 @@ export async function POST(request) {
       break;
     default:
       return new Response(
-        JSON.stringify({ error: 'Unsupported file type' }), 
+        JSON.stringify({ error: 'Unsupported file type' }),
         { status: 400 }
       );
   }
-  
+
   const docs = await loader.load();
 
   // 5. setup embeddings + vector store
   const embeddings = new OpenAIEmbeddings({ model: 'text-embedding-3-small' });
-  const qdrantUrl = process.env.QDRANT_URL;
+  const qdrantUrl = process.env.QDRANT_URL || 'http://127.0.0.1:6333';
   // Use per-user collection to isolate vectors
   const collectionName = meta.user_id;
   const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
@@ -80,7 +80,7 @@ export async function POST(request) {
     // Handle different metadata structures for different file types
     let pageNumber = null;
     let source = meta.file_name;
-    
+
     if (fileExtension === '.pdf') {
       pageNumber = d.metadata?.page || d.metadata?.pageNumber || d.metadata?.loc?.pageNumber;
     } else if (fileExtension === '.csv') {
@@ -91,7 +91,7 @@ export async function POST(request) {
       // For DOCX, we can use section or paragraph numbers
       pageNumber = d.metadata?.section || index + 1;
     }
-    
+
     return {
       pageContent: d.pageContent,
       metadata: {
@@ -111,7 +111,7 @@ export async function POST(request) {
   // best-effort cleanup of temp file
   try {
     await fs.unlink(localFileName);
-  } catch {}
+  } catch { }
 
   return new Response(
     JSON.stringify({ success: true, documentsCount: enrichedDocs.length }),

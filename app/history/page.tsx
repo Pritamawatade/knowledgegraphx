@@ -13,7 +13,6 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  let query_msg: any = null;
   useEffect(() => {
     const fetchHistory = async () => {
       if (!isSignedIn) {
@@ -26,7 +25,6 @@ export default function HistoryPage() {
         if (response.ok) {
           const result = await response.json();
           setData(result.history || []);
-          return result.history;
         } else {
           setError('Failed to load history');
         }
@@ -38,10 +36,8 @@ export default function HistoryPage() {
       }
     };
 
-    query_msg =  fetchHistory();
+    fetchHistory();
   }, [isSignedIn]);
-
-  use(query_msg);
 
   const deleteChat = async (id: string) => {
     setDeleting(id);

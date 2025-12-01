@@ -15,8 +15,11 @@ export async function processQuery(
         // 1️⃣ Create embedding for user’s question
         const embeddings = new OpenAIEmbeddings({ model: 'text-embedding-3-small' });
 
+        const qdrantUrl = process.env.QDRANT_URL || 'http://127.0.0.1:6333';
+        console.log(`[RAG] Connecting to Qdrant at ${qdrantUrl}`);
+
         const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
-            url: process.env.QDRANT_URL || 'http://localhost:6333',
+            url: qdrantUrl,
             collectionName: userId,
         });
 

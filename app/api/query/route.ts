@@ -5,7 +5,7 @@ import { QdrantVectorStore } from '@langchain/qdrant';
 import { supabaseServer } from '@/lib/supabaseServer';
 import OpenAI from 'openai';
 
-const client  = new OpenAI();
+const client = new OpenAI();
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const embeddings = new OpenAIEmbeddings({ model: 'text-embedding-3-small' });
 
     const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
-      url: process.env.QDRANT_URL || 'http://localhost:6333',
+      url: process.env.QDRANT_URL || 'http://127.0.0.1:6333',
       collectionName: userId,
     });
 

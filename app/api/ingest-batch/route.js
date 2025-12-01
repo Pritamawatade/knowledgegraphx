@@ -11,7 +11,7 @@ import { QdrantVectorStore } from '@langchain/qdrant';
 
 export async function POST(request) {
   const { metadataIds } = await request.json();
-  
+
   if (!metadataIds || !Array.isArray(metadataIds) || metadataIds.length === 0) {
     return new Response(JSON.stringify({ error: 'No metadata IDs provided' }), { status: 400 });
   }
@@ -22,7 +22,7 @@ export async function POST(request) {
 
   // Setup embeddings and vector store (will be reused)
   const embeddings = new OpenAIEmbeddings({ model: 'text-embedding-3-small' });
-  const qdrantUrl = process.env.QDRANT_URL;
+  const qdrantUrl = process.env.QDRANT_URL || 'http://127.0.0.1:6333';
 
   for (const metadataId of metadataIds) {
     try {
@@ -63,7 +63,7 @@ export async function POST(request) {
       // 4. Load document via LangChain loader based on file type
       let loader;
       const fileExtension = path.extname(safeBaseName).toLowerCase();
-      
+
       switch (fileExtension) {
         case '.pdf':
           loader = new PDFLoader(localFileName);
@@ -78,22 +78,22 @@ export async function POST(request) {
           errors.push(`Unsupported file type for ${meta.file_name}`);
           continue;
       }
-      
+
       const docs = await loader.load();
 
       // 5. Setup vector store for this user
       const collectionName = meta.user_id;
       const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
         url: qdrantUrl,
-        apiKey: process.env.QDRANT_API_KEY,
-        // collectionName,
+        // apiKey: process.env.QDRANT_API_KEY,
+        collectionName,
       });
 
       // 6. Enrich metadata and add documents (chunks) to vector store
       const enrichedDocs = docs.map((d, index) => {
         let pageNumber = null;
         let source = meta.file_name;
-        
+
         if (fileExtension === '.pdf') {
           pageNumber = d.metadata?.page || d.metadata?.pageNumber || d.metadata?.loc?.pageNumber;
         } else if (fileExtension === '.csv') {
@@ -102,7 +102,7 @@ export async function POST(request) {
         } else if (fileExtension === '.docx') {
           pageNumber = d.metadata?.section || index + 1;
         }
-        
+
         return {
           pageContent: d.pageContent,
           metadata: {
@@ -145,8 +145,8 @@ export async function POST(request) {
   console.log(`Batch indexing completed. Processed ${results.length} files, ${totalDocuments} total documents`);
 
   return new Response(
-    JSON.stringify({ 
-      success: true, 
+    JSON.stringify({
+      success: true,
       processedFiles: results.length,
       totalFiles: metadataIds.length,
       totalDocuments,
