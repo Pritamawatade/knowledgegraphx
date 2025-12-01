@@ -85,7 +85,8 @@ export async function POST(request) {
       const collectionName = meta.user_id;
       const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
         url: qdrantUrl,
-        collectionName,
+        apiKey: process.env.QDRANT_API_KEY,
+        // collectionName,
       });
 
       // 6. Enrich metadata and add documents (chunks) to vector store
