@@ -90,6 +90,10 @@ export async function processQuery(
             stream: true,
         });
 
+        console.log("[RAG] Starting to process query\n");
+
+        console.log(`stream = \n ${JSON.stringify(stream)}`)
+
         let fullAnswer = '';
 
         for await (const chunk of stream) {

@@ -131,7 +131,7 @@ export default function ChatIdPage() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-y-scroll no-scrollbar">
       <ScrollArea className="flex-1 p-4">
         <div className="max-w-3xl mx-auto space-y-6 pb-4">
           {messages.map((msg, idx) => (
@@ -160,11 +160,11 @@ export default function ChatIdPage() {
                   <ReactMarkdown>{msg.content}</ReactMarkdown>
                 </div>
                 
-                {msg.sources && msg.sources.length > 0 && (
+                {msg.sources && typeof msg.sources === 'string' && JSON.parse(msg.sources).length > 0 && (
                   <div className="mt-4 pt-4 border-t border-border/50">
                     <p className="text-xs font-semibold mb-2 opacity-70">Sources:</p>
                     <div className="flex flex-wrap gap-2">
-                      {msg.sources.map((source, i) => (
+                      {JSON.parse(msg.sources).map((source: { file: string; page?: number }, i: number) => (
                         <div key={i} className="flex items-center gap-1 text-xs bg-background/50 px-2 py-1 rounded border border-border/50">
                           <FileText className="w-3 h-3" />
                           <span className="truncate max-w-[150px]">{source.file}</span>
