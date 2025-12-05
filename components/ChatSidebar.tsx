@@ -59,14 +59,14 @@ export default function ChatSidebar() {
   const deleteChat = async (e: React.MouseEvent, chatId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!confirm('Are you sure you want to delete this chat?')) return;
 
     try {
       const res = await fetch(`/api/chat/${chatId}`, {
         method: 'DELETE',
       });
-      
+
       if (res.ok) {
         setChats(chats.filter(c => c.id !== chatId));
         if (currentChatId === chatId) {
@@ -81,7 +81,7 @@ export default function ChatSidebar() {
   return (
     <div className="w-64 border-r bg-muted/10 h-full flex flex-col">
       <div className="p-4 border-b">
-        <Button onClick={createNewChat} className="w-full justify-start gap-2" variant="default">
+        <Button onClick={() => router.push('/chat')} className="w-full justify-start gap-2 cursor-pointer" variant="default">
           <Plus className="w-4 h-4" />
           New Chat
         </Button>
