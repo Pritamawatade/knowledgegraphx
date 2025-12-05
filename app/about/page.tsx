@@ -331,7 +331,7 @@ export default function AboutPage() {
                 variant="outline"
                 className="border-white text-black dark:text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-3"
               >
-                <Link href="/query">
+                <Link href="/chat">
                   Start Chatting
                 </Link>
               </Button>

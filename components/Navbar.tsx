@@ -81,7 +81,7 @@ export default function Navbar() {
                       <NavigationMenuLink asChild>
                         <Link
                           className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                          href="/query"
+                          href="/chat"
                         >
                           <MessageCircle className="h-6 w-6" />
                           <div className="mb-2 mt-4 text-lg font-medium">
@@ -265,7 +265,7 @@ export default function Navbar() {
               <span>Upload</span>
             </Link>
             <Link 
-              href="/query" 
+              href="/chat" 
               className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
               onClick={() => setIsMenuOpen(false)}
             >

@@ -25,7 +25,7 @@ import {
 const footerLinks = {
   product: [
     { name: "Upload Documents", href: "/upload", icon: Upload },
-    { name: "Chat with AI", href: "/query", icon: MessageCircle },
+    { name: "Chat with AI", href: "/chat", icon: MessageCircle },
     { name: "Features", href: "/features", icon: Star },
     { name: "Pricing", href: "/pricing", icon: Zap }
   ],

@@ -169,7 +169,7 @@ export const FileUpload = ({
           
           // Redirect to chat after short delay
           setTimeout(() => {
-            router.push('/query');
+            router.push('/chat');
           }, 1500);
         } catch (e: any) {
           setError(e.message);

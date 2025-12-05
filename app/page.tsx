@@ -149,7 +149,7 @@ const testimonials = [
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="border-2 border-emerald-200/50 hover:border-emerald-400/80 text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium px-10 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white/10 dark:bg-black/20 backdrop-blur-md hover:bg-emerald-50/20 dark:hover:bg-emerald-900/20">
-              <Link href="/query">
+              <Link href="/chat">
                 Try asking a question
               </Link>
             </Button>
@@ -222,7 +222,7 @@ const testimonials = [
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 bg-white/80 backdrop-blur-sm">
-            <Link href="/query">
+            <Link href="/chat">
               Try a question
             </Link>
           </Button>

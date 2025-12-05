@@ -94,7 +94,7 @@ export default function HistoryPage() {
           <div className="p-6">
             <p className="text-sm text-red-600">Failed to load history.</p>
             <div className="mt-4">
-              <Link href="/query">
+              <Link href="/chat">
                 <Button variant="default">
                   Try asking a question
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -138,7 +138,7 @@ export default function HistoryPage() {
               Your recent conversations will appear here.
             </p>
             <div className="mt-5">
-              <Link href="/query">
+              <Link href="/chat">
                 <Button>
                   Start your first chat
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -188,7 +188,7 @@ export default function HistoryPage() {
                 </p>
 
                 <div className="mt-4 flex items-center justify-between">
-                  <Link href={`/query`} className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
+                  <Link href={`/chat`} className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
                     Open chat
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </Link>

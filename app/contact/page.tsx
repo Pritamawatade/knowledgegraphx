@@ -430,7 +430,7 @@ export default function ContactPage() {
                 variant="outline"
                 className="border-white text-black dark:text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-3"
               >
-                <a href="/query">
+                <a href="/chat">
                   Start Chatting
                 </a>
               </Button>
