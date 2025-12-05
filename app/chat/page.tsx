@@ -85,8 +85,8 @@ export default function ChatPage() {
   return (
     <>
       <div className="flex flex-col items-center justify-center h-full text-center w-full">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <MessageSquare className="w-8 h-8 text-muted-foreground" />
+        <div className="w-16 h-16 rounded-full hover:bg-green-600 transition-colors flex items-center justify-center mb-4 bg-green-500">
+          <MessageSquare className="w-8 h-8 text-white" />
         </div>
         <p className='text-2xl'>Start Asking Questions </p>
 
@@ -104,7 +104,7 @@ export default function ChatPage() {
               onClick={createNewChat}
               disabled={!input.trim() || streaming}
               size="icon"
-              className="absolute right-2 bottom-2"
+              className="absolute right-2 bottom-2 bg-green-500 hover:bg-green-600"
             >
               {streaming ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

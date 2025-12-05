@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
-import { Plus, MessageSquare, Trash2, Loader2 } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Loader2, NotebookPen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -81,14 +81,20 @@ export default function ChatSidebar() {
   return (
     <div className="w-64 border-r bg-muted/10 h-full flex flex-col">
       <div className="p-4 border-b">
-        <Button onClick={() => router.push('/chat')} className="w-full justify-start gap-2 cursor-pointer" variant="default">
+        <Button onClick={() => router.push('/chat')} className="w-full justify-start gap-2 cursor-pointer bg-green-500 hover:bg-green-600" variant="default">
           <Plus className="w-4 h-4" />
           New Chat
         </Button>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-2">
+        <div className="flex items-center gap-2 p-2 overflow-hidden dark:hover:bg-[#303030] space-y-2 ml-1 rounded-xl cursor-pointer">
+          <NotebookPen className="w-4 h-4 shrink-0 text-green-600 font-bold" />
+          <span className="truncate dark:text-white text-green-600 px-2 py-2 font-bold">{`Start Interview`}</span>
+        </div>
+
+        <div className="p-2 space-y-2 overflow-y-scroll max-h-[calc(100vh-64px)]">
+
           {loading ? (
             <div className="flex justify-center p-4">
               <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
@@ -103,7 +109,7 @@ export default function ChatSidebar() {
                 key={chat.id}
                 href={`/chat/${chat.id}`}
                 className={cn(
-                  "flex items-center justify-between p-3 rounded-lg text-sm transition-colors hover:bg-muted group",
+                  "flex items-center justify-between p-3 rounded-xl text-sm transition-colors hover:bg-muted group ",
                   currentChatId === chat.id ? "bg-muted font-medium" : "text-muted-foreground"
                 )}
               >
