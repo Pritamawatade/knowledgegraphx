@@ -37,6 +37,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatid, setChatId] = useState<string>();
   const { user } = useUser();
+
   const sendMessage = async () => {
     if (!input.trim() || streaming || !socket) return;
 
@@ -56,18 +57,19 @@ export default function ChatPage() {
   };
 
   const createNewChat = async () => {
+    if (!input.trim()) return;
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: `${input.slice(0, input.length > 20 ? 15 : input.length)}...` }),
+        body: JSON.stringify({ title: input.trim().slice(0, 20) + (input.length > 20 ? '...' : '') }),
       });
       if (res.ok) {
         const newChat = await res.json();
         setChatId(newChat.id);
         setChats([newChat, ...chats]);
 
-        router.push(`/chat/${newChat.id}`);
+        router.push(`/chat/${newChat.id}?message=${encodeURIComponent(input.trim())}`);
       }
     } catch (error) {
       console.error('Failed to create chat:', error);
@@ -82,20 +84,20 @@ export default function ChatPage() {
   };
   return (
     <>
-      <div className="flex flex-col items-center justify-center h-full text-center">
+      <div className="flex flex-col items-center justify-center h-full text-center w-full">
         <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <MessageSquare className="w-8 h-8 text-muted-foreground" />
         </div>
+        <p className='text-2xl'>Start Asking Questions </p>
 
-
-        <div className="p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className=" p-4 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="max-w-3xl mx-auto relative">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask a question about your documents..."
-              className="min-h-[60px] pr-12 resize-none"
+              className="min-h-[60px] w-full pr-12 resize-none "
               disabled={streaming}
             />
             <Button

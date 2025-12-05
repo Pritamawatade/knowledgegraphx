@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { Send, Loader2, User, Bot, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,8 +23,12 @@ export default function ChatIdPage() {
   const { user } = useUser();
   const params = useParams();
   const chatId = params?.id as string;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialMessage = searchParams.get('message');
+  const initialMessageSent = useRef(false);
   const socket = useSocket();
-  
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
@@ -97,23 +101,31 @@ export default function ChatIdPage() {
     }
   }, [messages, streaming]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || streaming || !socket) return;
+  const sendMessage = async (content?: string) => {
+    const messageToSend = content || input.trim();
+    if (!messageToSend || streaming || !socket) return;
 
-    const userMessage = input.trim();
-    setInput('');
+    if (!content) setInput('');
     setStreaming(true);
 
     // Optimistically add user message
-    setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
+    setMessages((prev) => [...prev, { role: 'user', content: messageToSend }]);
 
     // Send to server
     socket.emit('send_message', {
       chatId,
-      message: userMessage,
+      message: messageToSend,
       userId: user?.id,
     });
   };
+
+  useEffect(() => {
+    if (initialMessage && socket && !initialMessageSent.current) {
+      initialMessageSent.current = true;
+      sendMessage(initialMessage);
+      router.replace(`/chat/${chatId}`);
+    }
+  }, [initialMessage, socket, chatId, router]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -147,19 +159,19 @@ export default function ChatIdPage() {
                   <Bot className="w-5 h-5 text-primary" />
                 </div>
               )}
-              
+
               <div
                 className={cn(
                   "rounded-lg p-4 max-w-[80%]",
-                  msg.role === 'user' 
-                    ? "bg-primary text-primary-foreground" 
+                  msg.role === 'user'
+                    ? "bg-primary text-primary-foreground"
                     : "bg-muted"
                 )}
               >
                 <div className="prose dark:prose-invert text-sm break-words">
                   <ReactMarkdown>{msg.content}</ReactMarkdown>
                 </div>
-                
+
                 {msg.sources && typeof msg.sources === 'string' && JSON.parse(msg.sources).length > 0 && (
                   <div className="mt-4 pt-4 border-t border-border/50">
                     <p className="text-xs font-semibold mb-2 opacity-70">Sources:</p>
@@ -198,7 +210,7 @@ export default function ChatIdPage() {
             disabled={streaming}
           />
           <Button
-            onClick={sendMessage}
+            onClick={() => sendMessage()}
             disabled={!input.trim() || streaming}
             size="icon"
             className="absolute right-2 bottom-2"

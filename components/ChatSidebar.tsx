@@ -109,7 +109,7 @@ export default function ChatSidebar() {
               >
                 <div className="flex items-center gap-2 overflow-hidden">
                   <MessageSquare className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{chat.title}</span>
+                  <span className="truncate">{`${chat.title.slice(0, 20) + (chat.title.length > 20 ? '...' : '')}`}</span>
                 </div>
                 <Button
                   variant="ghost"
