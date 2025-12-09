@@ -88,10 +88,12 @@ export default function ChatSidebar() {
       </div>
 
       <ScrollArea className="flex-1">
+      <Link href="/interview">
         <div className="flex items-center gap-2 p-2 overflow-hidden dark:hover:bg-[#303030] space-y-2 ml-1 rounded-xl cursor-pointer">
           <NotebookPen className="w-4 h-4 shrink-0 text-green-600 font-bold" />
           <span className="truncate dark:text-white text-green-600 px-2 py-2 font-bold">{`Start Interview`}</span>
         </div>
+      </Link>
 
         <div className="p-2 space-y-2 overflow-y-scroll max-h-[calc(100vh-64px)]">
 

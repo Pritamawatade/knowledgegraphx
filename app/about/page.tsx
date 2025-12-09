@@ -6,14 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Spotlight } from "@/components/ui/spotlight";
 import { FlipWords } from "@/components/ui/flip-words";
-import { 
-  Github, 
-  Linkedin, 
-  Mail, 
-  Users, 
-  Target, 
-  Lightbulb, 
-  Code, 
+import {
+  Github,
+  Linkedin,
+  Mail,
+  Users,
+  Target,
+  Lightbulb,
+  Code,
   Database,
   Brain,
   Zap,
@@ -51,7 +51,7 @@ const teamMembers = [
     skills: ["React", "Tailwind CSS", "Framer Motion", "shadcn/ui"],
     github: "https://github.com/pritamawatade",
     linkedin: "https://github.com/pritam-awatade",
-    email: "ved@example.com", 
+    email: "ved@example.com",
     gradient: "from-orange-500 to-red-600"
   },
   {
@@ -123,10 +123,10 @@ export default function AboutPage() {
             </div>
             <h2 className="mb-6 text-3xl font-bold md:text-4xl">Our Mission</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              We're on a mission to revolutionize how people interact with documents. 
-              By combining cutting-edge AI technology with intuitive design, we're making 
-              it possible for anyone to have meaningful conversations with their PDFs, 
-              research papers, and knowledge bases. Our goal is to break down the barriers 
+              We're on a mission to revolutionize how people interact with documents.
+              By combining cutting-edge AI technology with intuitive design, we're making
+              it possible for anyone to have meaningful conversations with their PDFs,
+              research papers, and knowledge bases. Our goal is to break down the barriers
               between information and understanding.
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function AboutPage() {
       </section>
 
       {/* Team Section */}
-      <section className="container mx-auto px-6 py-16">
+      {/* <section className="container mx-auto px-6 py-16">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -208,7 +208,7 @@ export default function AboutPage() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* Technology Stack */}
       <section className="bg-muted/30 py-16">
@@ -311,13 +311,13 @@ export default function AboutPage() {
               Ready to Experience the Future?
             </h2>
             <p className="mx-auto mb-8 max-w-2xl text-lg opacity-90">
-              Join us in revolutionizing document interaction. Upload your first document 
+              Join us in revolutionizing document interaction. Upload your first document
               and start having intelligent conversations today.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button 
-                asChild 
-                size="lg" 
+              <Button
+                asChild
+                size="lg"
                 variant="secondary"
                 className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-3"
               >
@@ -325,9 +325,9 @@ export default function AboutPage() {
                   Try It Now
                 </Link>
               </Button>
-              <Button 
-                asChild 
-                size="lg" 
+              <Button
+                asChild
+                size="lg"
                 variant="outline"
                 className="border-white text-black dark:text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-3"
               >

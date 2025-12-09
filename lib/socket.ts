@@ -29,6 +29,11 @@ export function setupSocket(io: SocketIOServer) {
             }
         });
 
+        socket.on("audio-chunk", (data: Buffer) => {
+            // For now, just log the size. Later we feed this to STT.
+            console.log("🎧 Received audio chunk:", data.length, "bytes");
+          });
+
         socket.on('disconnect', () => {
             console.log('Client disconnected:', socket.id);
         });

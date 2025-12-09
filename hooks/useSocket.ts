@@ -1,30 +1,31 @@
-import { useEffect, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+"use client";
+
+import { useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
 export const useSocket = () => {
-    const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-    useEffect(() => {
-        // Initialize socket connection
-        // We connect to the same host as the Next.js app
-        socketRef.current = io({
-            path: '/socket.io',
-        });
+  useEffect(() => {
+    // Connect to same origin, same path
+    const socketInstance: Socket = io({
+      path: "/socket.io",
+    });
 
-        socketRef.current.on('connect', () => {
-            console.log('Connected to socket server');
-        });
+    setSocket(socketInstance);
 
-        socketRef.current.on('disconnect', () => {
-            console.log('Disconnected from socket server');
-        });
+    socketInstance.on("connect", () => {
+      console.log("✅ Connected to socket server:", socketInstance.id);
+    });
 
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.disconnect();
-            }
-        };
-    }, []);
+    socketInstance.on("disconnect", () => {
+      console.log("⛔ Disconnected from socket server");
+    });
 
-    return socketRef.current;
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, []);
+
+  return socket;
 };
