@@ -1,7 +1,7 @@
 // app/voice/page.tsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSocket } from "@/hooks/useSocket";
 
 export default function VoiceDebugPage() {
@@ -9,13 +9,33 @@ export default function VoiceDebugPage() {
 
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [transcription, setTranscription] = useState<string>("");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
+
+  useEffect(() => {
+    if (!socket)
+      return;
+
+    const handler = (payload: { text?: string, error?: string }) => {
+      if (payload.error)
+        setError(payload.error)
+      else
+        setTranscription(payload.text ?? "")
+
+      socket.emit('transcription', handler);
+
+      return () => {
+        socket.off("transcription", handler);
+      };
+    }
+  }, [socket])
+
   const startRecording = async () => {
     setError(null);
-
+    setTranscription("");
     if (!socket || !socket.connected) {
       setError("Socket not connected yet");
       return;
@@ -31,6 +51,7 @@ export default function VoiceDebugPage() {
           : "audio/webm";
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
+
 
       mediaRecorder.ondataavailable = async (event) => {
         if (event.data.size > 0 && socket.connected) {
@@ -111,6 +132,13 @@ export default function VoiceDebugPage() {
       </button>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
+
+      <div className="w-full max-w-xl mt-4">
+        <h2 className="font-semibold mb-1 text-sm">Last transcription:</h2>
+        <div className="border rounded p-3 min-h-[80px] text-sm bg-gray-50 whitespace-pre-wrap">
+          {transcription || <span className="text-gray-400">No transcription yet</span>}
+        </div>
+      </div>
 
       <p className="text-xs text-gray-500 max-w-md text-center">
         When recording, your mic audio is chunked (~250ms) and sent as binary
