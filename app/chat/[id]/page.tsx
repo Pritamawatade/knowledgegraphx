@@ -11,6 +11,10 @@ import { useSocket } from '@/hooks/useSocket';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 
+// Prevent prerendering - this page uses dynamic data (useSearchParams, API calls)
+export const dynamic = 'force-dynamic';
+
+
 type Message = {
   id?: string;
   role: 'user' | 'assistant';

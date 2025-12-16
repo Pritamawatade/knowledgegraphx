@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { supabaseServer } from '@/lib/supabaseServer';
 import { NextRequest, NextResponse } from 'next/server';
 
+
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
 
   const body = await request.formData();
   const files = body.getAll('files') as File[];
-  
+
   if (!files || files.length === 0) {
     return NextResponse.json({ error: 'No files provided' }, { status: 400 });
   }
@@ -22,13 +23,13 @@ export async function POST(request: NextRequest) {
     'text/csv',
     'application/csv'
   ];
-  
+
   const maxSize = 50 * 1024 * 1024; // 50MB per file
   const maxFiles = 10; // Maximum 10 files at once
 
   if (files.length > maxFiles) {
-    return NextResponse.json({ 
-      error: `Maximum ${maxFiles} files allowed at once.` 
+    return NextResponse.json({
+      error: `Maximum ${maxFiles} files allowed at once.`
     }, { status: 400 });
   }
 
@@ -37,16 +38,16 @@ export async function POST(request: NextRequest) {
     if (!(file instanceof File)) {
       return NextResponse.json({ error: 'Invalid file format' }, { status: 400 });
     }
-    
+
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ 
-        error: `Unsupported file type: ${file.name}. Please upload PDF, DOCX, or CSV files only.` 
+      return NextResponse.json({
+        error: `Unsupported file type: ${file.name}. Please upload PDF, DOCX, or CSV files only.`
       }, { status: 400 });
     }
 
     if (file.size > maxSize) {
-      return NextResponse.json({ 
-        error: `File ${file.name} is too large. Maximum size is 50MB.` 
+      return NextResponse.json({
+        error: `File ${file.name} is too large. Maximum size is 50MB.`
       }, { status: 400 });
     }
   }
@@ -104,13 +105,13 @@ export async function POST(request: NextRequest) {
 
   // Return results
   if (uploadResults.length === 0) {
-    return NextResponse.json({ 
-      error: 'All uploads failed', 
-      details: errors 
+    return NextResponse.json({
+      error: 'All uploads failed',
+      details: errors
     }, { status: 500 });
   }
 
-  return NextResponse.json({ 
+  return NextResponse.json({
     success: true,
     uploadedFiles: uploadResults,
     totalUploaded: uploadResults.length,

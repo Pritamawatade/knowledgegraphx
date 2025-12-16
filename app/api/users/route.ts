@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { supabaseServer } from '@/lib/supabaseServer';
 
+
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
