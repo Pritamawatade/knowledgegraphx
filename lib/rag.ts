@@ -1,6 +1,7 @@
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { QdrantVectorStore } from '@langchain/qdrant';
 import { supabaseServer } from '@/lib/supabaseServer';
+import { getCachedMessages } from '@/lib/cache-helpers';
 import OpenAI from 'openai';
 
 const client = new OpenAI();
@@ -69,13 +70,8 @@ export async function processQuery(
     End your answers with a short summary or takeaway line if appropriate.
     `;
 
-        // Fetch previous messages for context
-        const { data: previousMessages } = await supabaseServer
-            .from('messages')
-            .select('role, content')
-            .eq('chat_id', chatId)
-            .order('created_at', { ascending: true })
-            .limit(10);
+        // Fetch previous messages using cached helper (reduces DB load)
+        const previousMessages = await getCachedMessages(chatId);
 
         const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
             { role: 'system', content: systemPrompt },

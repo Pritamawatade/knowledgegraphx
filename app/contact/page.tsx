@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Spotlight } from "@/components/ui/spotlight";
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Send, 
-  MessageCircle, 
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Send,
+  MessageCircle,
   Clock,
   CheckCircle,
   Github,
@@ -100,7 +100,7 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     // await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -124,7 +124,7 @@ export default function ContactPage() {
       const data = await response.json();
 
       console.log(`data = ${data}`)
-      if(!response.ok){
+      if (!response.ok) {
         console.log(`Error inserting user message, ${data.error}`)
         console.log(`error details ${data.details}`)
       }
@@ -133,7 +133,7 @@ export default function ContactPage() {
     }
     setIsSubmitting(false);
     setIsSubmitted(true);
-    
+
     // Reset form after 3 seconds
     // setTimeout(() => {
     //   setIsSubmitted(false);
@@ -410,13 +410,13 @@ export default function ContactPage() {
               Ready to Get Started?
             </h2>
             <p className="mx-auto mb-8 max-w-2xl text-lg opacity-90">
-              Don't wait! Upload your first document and experience the power of 
+              Don't wait! Upload your first document and experience the power of
               AI-driven document conversations today.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button 
-                asChild 
-                size="lg" 
+              <Button
+                asChild
+                size="lg"
                 variant="secondary"
                 className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-3"
               >
@@ -424,9 +424,9 @@ export default function ContactPage() {
                   Upload Document
                 </a>
               </Button>
-              <Button 
-                asChild 
-                size="lg" 
+              <Button
+                asChild
+                size="lg"
                 variant="outline"
                 className="border-white text-black dark:text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-3"
               >

@@ -9,6 +9,9 @@ import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import FeaturesSectionDemo from "@/components/features-section-demo-3";
 import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
 
+// Enable ISR - cache homepage for 30 minutes
+export const revalidate = 1800;
+
 export const Highlight = ({
   children,
   className,
@@ -30,45 +33,45 @@ export const Highlight = ({
 
 export default function Home() {
 
-const testimonials = [
-  {
-    quote:
-      "MindDock has completely redefined how our team interacts with internal documents. Upload, chat, and extract insights within seconds — it's like having a genius researcher on demand.",
-    name: "Aarav Mehta",
-    designation: "Data Analyst at Quantix Labs",
-    src: "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?q=80&w=3560&auto=format&fit=crop&ixlib=rb-4.0.3",
-  },
-  {
-    quote:
-      "We replaced hours of manual reading with Nova’s instant answers. Our onboarding and project documentation process is now 10x faster.",
-    name: "Sophia Turner",
-    designation: "HR Lead at PeopleVerse",
-    src: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3",
-  },
-  {
-    quote:
-      "Nova feels like a teammate who never sleeps. We use it daily to summarize legal PDFs, draft responses, and even extract patterns from reports.",
-    name: "Rahul Singh",
-    designation: "Legal Operations Manager at JurisIQ",
-    src: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3",
-  },
-  {
-    quote:
-      "Finally, an AI that makes knowledge searchable and conversational. The integration with Supabase is seamless, and performance is top-tier.",
-    name: "Mia Gonzalez",
-    designation: "CTO at ByteFlow Systems",
-    src: "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?q=80&w=3464&auto=format&fit=crop&ixlib=rb-4.0.3",
-  },
-  {
-    quote:
-      "We feed thousands of research documents to MindDock, and Nova extracts exactly what we need — contextually accurate, lightning fast, and stunningly intuitive.",
-    name: "Liam Johnson",
-    designation: "AI Researcher at DeepCore Analytics",
-    src: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2592&auto=format&fit=crop&ixlib=rb-4.0.3",
-  },
-];
+  const testimonials = [
+    {
+      quote:
+        "MindDock has completely redefined how our team interacts with internal documents. Upload, chat, and extract insights within seconds — it's like having a genius researcher on demand.",
+      name: "Aarav Mehta",
+      designation: "Data Analyst at Quantix Labs",
+      src: "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?q=80&w=3560&auto=format&fit=crop&ixlib=rb-4.0.3",
+    },
+    {
+      quote:
+        "We replaced hours of manual reading with Nova’s instant answers. Our onboarding and project documentation process is now 10x faster.",
+      name: "Sophia Turner",
+      designation: "HR Lead at PeopleVerse",
+      src: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3",
+    },
+    {
+      quote:
+        "Nova feels like a teammate who never sleeps. We use it daily to summarize legal PDFs, draft responses, and even extract patterns from reports.",
+      name: "Rahul Singh",
+      designation: "Legal Operations Manager at JurisIQ",
+      src: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3",
+    },
+    {
+      quote:
+        "Finally, an AI that makes knowledge searchable and conversational. The integration with Supabase is seamless, and performance is top-tier.",
+      name: "Mia Gonzalez",
+      designation: "CTO at ByteFlow Systems",
+      src: "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?q=80&w=3464&auto=format&fit=crop&ixlib=rb-4.0.3",
+    },
+    {
+      quote:
+        "We feed thousands of research documents to MindDock, and Nova extracts exactly what we need — contextually accurate, lightning fast, and stunningly intuitive.",
+      name: "Liam Johnson",
+      designation: "AI Researcher at DeepCore Analytics",
+      src: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2592&auto=format&fit=crop&ixlib=rb-4.0.3",
+    },
+  ];
 
-  
+
   const CARDS = [
     {
       id: 0,
@@ -101,7 +104,7 @@ const testimonials = [
       ),
     },
   ];
-  
+
   return (
     <main className="relative overflow-hidden">
       {/* Animated background inspired by Aceternity Background Beams */}
@@ -112,55 +115,55 @@ const testimonials = [
 
       {/* Hero Section */}
       <div className="relative flex h-[40rem] w-full overflow-hidden rounded-md bg-black/[0.96] antialiased md:items-center md:justify-center">
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-0 [background-size:40px_40px] select-none",
-          "[background-image:linear-gradient(to_right,#171717_1px,transparent_1px),linear-gradient(to_bottom,#171717_1px,transparent_1px)]",
-        )}
-      />
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-0 [background-size:40px_40px] select-none",
+            "[background-image:linear-gradient(to_right,#171717_1px,transparent_1px),linear-gradient(to_bottom,#171717_1px,transparent_1px)]",
+          )}
+        />
 
- 
-      <Spotlight
-        className="-top-40 left-0 md:-top-20 md:left-60"
-        fill="white"
-      />
-      <div className="relative z-10 mx-auto w-full max-w-7xl p-4 pt-20 md:pt-0">
-        <h1 className="selection:bg-green-500 selection:text-white bg-opacity-50 bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text text-center text-2xl font-bold text-transparent md:text-7xl capitalize">
-       One stop solution for the students and professionals.
-        </h1>
+
+        <Spotlight
+          className="-top-40 left-0 md:-top-20 md:left-60"
+          fill="white"
+        />
+        <div className="relative z-10 mx-auto w-full max-w-7xl p-4 pt-20 md:pt-0">
+          <h1 className="selection:bg-green-500 selection:text-white bg-opacity-50 bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text text-center text-2xl font-bold text-transparent md:text-7xl capitalize">
+            One stop solution for the students and professionals.
+          </h1>
+
+          <div>
+
+            <TextGenerateEffect className="text-green-500 text-center" words="Search. Prepare. Apply." />
+          </div>
+
+          <div className="mt-8 flex justify-center gap-4">
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
+                  Get started
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <Button asChild size="lg" className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white font-medium px-10 py-4 rounded-xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 border border-emerald-500/20">
+                <Link href="/upload">
+                  Upload documents
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="border-2 border-emerald-200/50 hover:border-emerald-400/80 text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium px-10 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white/10 dark:bg-black/20 backdrop-blur-md hover:bg-emerald-50/20 dark:hover:bg-emerald-900/20">
+                <Link href="/chat">
+                  Try asking a question
+                </Link>
+              </Button>
+            </SignedIn>
+          </div>
+        </div>
 
         <div>
 
-          <TextGenerateEffect  className="text-green-500 text-center" words="Search. Prepare. Apply." />
-        </div>
-
-        <div className="mt-8 flex justify-center gap-4">
-          <SignedOut>
-            <SignInButton mode="modal">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
-                Get started
-              </Button>
-            </SignInButton>
-          </SignedOut>
-          <SignedIn>
-<Button asChild size="lg" className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white font-medium px-10 py-4 rounded-xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 border border-emerald-500/20">
-              <Link href="/upload">
-                Upload documents
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="border-2 border-emerald-200/50 hover:border-emerald-400/80 text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium px-10 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white/10 dark:bg-black/20 backdrop-blur-md hover:bg-emerald-50/20 dark:hover:bg-emerald-900/20">
-              <Link href="/chat">
-                Try asking a question
-              </Link>
-            </Button>
-          </SignedIn>
         </div>
       </div>
-
-      <div>
-        
-      </div>
-    </div>
 
       {/* Features Section */}
       {/* <section className="container mx-auto grid grid-cols-1 gap-10 px-6 pb-20 lg:grid-cols-2">
@@ -188,14 +191,14 @@ const testimonials = [
 
       <div className="flex items-center justify-around  py-12 px-4  ">
         <CardDemo />
-        <CardStack  items={CARDS} />
+        <CardStack items={CARDS} />
       </div>
-<AnimatedTestimonials  testimonials={testimonials}/>
+      <AnimatedTestimonials testimonials={testimonials} />
 
-<div id="feature">
+      <div id="feature">
 
-  <FeaturesSectionDemo />
-</div>
+        <FeaturesSectionDemo />
+      </div>
       {/* Logos/Testimonials Strip */}
       <section className="border-t border-b bg-muted/40 py-8">
         <div className="container mx-auto px-6">

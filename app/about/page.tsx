@@ -22,49 +22,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const teamMembers = [
-  {
-    name: "Pritam Awatade",
-    role: "Team Leader & Full Stack Developer",
-    description: "Leading the project with expertise in Next.js, React, and system architecture. Passionate about creating seamless user experiences.",
-    skills: ["Next.js", "React", "TypeScript", "System Design"],
-    github: "https://github.com/pritamawatade",
-    linkedin: "https://github.com/pritam-awatade",
-    email: "pritamawatade.work@gmail.com",
-    gradient: "from-blue-500 to-purple-600"
-  },
-  {
-    name: "Aman",
-    role: "Backend Developer & AI Integration",
-    description: "Specializing in backend development and AI integration. Expert in building robust APIs and implementing machine learning solutions.",
-    skills: ["Node.js", "Python", "OpenAI API", "Supabase"],
-    github: "https://github.com/pritamawatade",
-    linkedin: "https://github.com/pritam-awatade",
-    email: "aman@example.com",
-    gradient: "from-green-500 to-teal-600"
-  },
-  {
-    name: "Ved",
-    role: "Frontend Developer & UI/UX",
-    description: "Crafting beautiful and intuitive user interfaces. Focused on creating engaging user experiences with modern design principles.",
-    skills: ["React", "Tailwind CSS", "Framer Motion", "shadcn/ui"],
-    github: "https://github.com/pritamawatade",
-    linkedin: "https://github.com/pritam-awatade",
-    email: "ved@example.com",
-    gradient: "from-orange-500 to-red-600"
-  },
-  {
-    name: "Amul",
-    role: "DevOps & Database Engineer",
-    description: "Managing deployment pipelines and database optimization. Ensuring scalable and reliable infrastructure for the application.",
-    skills: ["Docker", "PostgreSQL", "Vector DB", "Cloud Services"],
-    github: "https://github.com/pritamawatade",
-    linkedin: "https://github.com/pritam-awatade",
-    email: "amul@example.com",
-    gradient: "from-purple-500 to-pink-600"
-  }
-];
-
 const technologies = [
   { name: "Next.js", icon: Code, description: "React framework for production" },
   { name: "Supabase", icon: Database, description: "Backend as a Service" },
