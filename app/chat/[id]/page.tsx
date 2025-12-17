@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { Send, Loader2, User, Bot, FileText } from 'lucide-react';
@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSocket } from '@/hooks/useSocket';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
+import { Loading } from '@/components/Loading';
 
 // Prevent prerendering - this page uses dynamic data (useSearchParams, API calls)
 export const dynamic = 'force-dynamic';
@@ -43,7 +44,7 @@ export default function ChatIdPage() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`/api/chat/${chatId}`);
+        const res = await fetch(`/api/chat/${chatId}`, {cache: 'force-cache'});
         if (res.ok) {
           const data = await res.json();
           setMessages(data);
@@ -140,13 +141,16 @@ export default function ChatIdPage() {
 
   if (loading) {
     return (
+         <Suspense fallback={<Loading message='Thinking...' />}>
       <div className="flex items-center justify-center h-full">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
+      </Suspense>
     );
   }
 
   return (
+    <Suspense fallback={<Loading message='Thinking' size='lg'/>}>
     <div className="flex flex-col h-full overflow-y-scroll no-scrollbar">
       <ScrollArea className="flex-1 p-4">
         <div className="max-w-3xl mx-auto space-y-6 pb-4">
@@ -228,5 +232,6 @@ export default function ChatIdPage() {
         </div>
       </div>
     </div>
+    </Suspense>
   );
 }

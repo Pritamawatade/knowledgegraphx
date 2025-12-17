@@ -8,6 +8,8 @@ import { CardStack } from "@/components/ui/card-stack";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import FeaturesSectionDemo from "@/components/features-section-demo-3";
 import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
+import { Suspense } from "react";
+import { Loading } from "@/components/Loading";
 
 // Enable ISR - cache homepage for 30 minutes
 export const revalidate = 1800;
@@ -106,6 +108,7 @@ export default function Home() {
   ];
 
   return (
+    <Suspense fallback={<Loading message="Loading..." />}>
     <main className="relative overflow-hidden">
       {/* Animated background inspired by Aceternity Background Beams */}
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -232,5 +235,6 @@ export default function Home() {
         </div>
       </section>
     </main>
+    </Suspense>
   );
 }

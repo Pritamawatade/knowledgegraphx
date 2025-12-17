@@ -4,6 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useSocket } from '@/hooks/useSocket';
 import { useUser } from '@clerk/nextjs';
 import { Loader2, MessageSquare, Send } from 'lucide-react';
+import { ErrorBoundaryHandler } from 'next/dist/client/components/error-boundary';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -89,6 +90,7 @@ export default function ChatPage() {
           <MessageSquare className="w-8 h-8 text-white" />
         </div>
         <p className='text-2xl'>Start Asking Questions </p>
+
 
         <div className=" p-4 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="max-w-3xl mx-auto relative">

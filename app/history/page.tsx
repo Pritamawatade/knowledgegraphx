@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Clock, ArrowRight, Trash, Loader2 } from 'lucide-react';
 import { ExportButton } from '@/components/exportbutton';
+import { Loading } from '@/components/Loading';
 
 export default function HistoryPage() {
   const { isSignedIn } = useUser();
@@ -72,6 +73,7 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
+      
       <div className="p-8 mx-auto max-w-3xl">
         <div className="flex items-center gap-3">
           <MessageSquare className="h-6 w-6 text-primary" />
@@ -85,6 +87,7 @@ export default function HistoryPage() {
   }
   if (error) {
     return (
+         <Suspense fallback={<Loading message='Thinking...' />}>
       <div className="p-8 mx-auto max-w-3xl">
         <div className="flex items-center gap-3">
           <MessageSquare className="h-6 w-6 text-primary" />
@@ -104,102 +107,105 @@ export default function HistoryPage() {
           </div>
         </div>
       </div>
+      </Suspense>
     );
   }
 
   return (
-    <div className="p-8 mx-auto max-w-4xl">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <MessageSquare className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-bold tracking-tight">Your Chat History</h1>
-        </div>
-        {data && data.length > 0 && (
-          <ExportButton data={data} />
-        )}
-      </div>
-
-      <Suspense fallback={<div>Loading...</div>}>
-        <div className="mt-8 rounded-lg border bg-background">
-          <div className="p-8 text-center">
-            <MessageSquare className="mx-auto h-10 w-10 text-muted-foreground" />
-            <h2 className="mt-4 text-lg font-semibold">No chats yet</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Your recent conversations will appear here once you start asking questions
-            </p>
+    <Suspense fallback={<Loading message='Thinking...' />}>
+      <div className="p-8 mx-auto max-w-4xl">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <MessageSquare className="h-6 w-6 text-primary" />
+            <h1 className="text-3xl font-bold tracking-tight">Your Chat History</h1>
           </div>
+          {data && data.length > 0 && (
+            <ExportButton data={data} />
+          )}
+        </div>
 
-      {!data || data.length === 0 ? (
-        <div className="mt-8 rounded-lg border bg-background">
-          <div className="p-8 text-center">
-            <MessageSquare className="mx-auto h-10 w-10 text-muted-foreground" />
-            <h2 className="mt-4 text-lg font-semibold">No chats yet</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Your recent conversations will appear here.
-            </p>
-            <div className="mt-5">
-              <Link href="/chat">
-                <Button>
-                  Start your first chat
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+        <Suspense fallback={<div>Loading...</div>}>
+          <div className="mt-8 rounded-lg border bg-background">
+            <div className="p-8 text-center">
+              <MessageSquare className="mx-auto h-10 w-10 text-muted-foreground" />
+              <h2 className="mt-4 text-lg font-semibold">No chats yet</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Your recent conversations will appear here once you start asking questions
+              </p>
             </div>
-          </div>
-        </div>
-      ) : (
-        <ul className="mt-8 space-y-4">
-          {data.map((row) => (
-            <li key={row.id} className="group rounded-xl border bg-background transition-colors hover:bg-accent/40">
-              <div className="p-5">
-                <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                  <div className="inline-flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    <span>Conversation</span>
+
+            {!data || data.length === 0 ? (
+              <div className="mt-8 rounded-lg border bg-background">
+                <div className="p-8 text-center">
+                  <MessageSquare className="mx-auto h-10 w-10 text-muted-foreground" />
+                  <h2 className="mt-4 text-lg font-semibold">No chats yet</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Your recent conversations will appear here.
+                  </p>
+                  <div className="mt-5">
+                    <Link href="/chat">
+                      <Button>
+                        Start your first chat
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
                   </div>
-                  <div className="inline-flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>{new Date(row.created_at).toLocaleString()}</span>
-                  </div>
-                  <div className="inline-flex items-center gap-2">
-
-                    <Button
-                      onClick={() => deleteChat(row.id)}
-                      disabled={deleting === row.id}
-                      variant="destructive"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                    >
-                      {deleting === row.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                <h3 className="mt-3 text-base font-semibold leading-6 line-clamp-2">
-                  {row.question}
-                </h3>
-
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-3">
-                  {row.answer}
-                </p>
-
-                <div className="mt-4 flex items-center justify-between">
-                  <Link href={`/chat`} className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
-                    Open chat
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
                 </div>
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
-        </div>
+            ) : (
+              <ul className="mt-8 space-y-4">
+                {data.map((row) => (
+                  <li key={row.id} className="group rounded-xl border bg-background transition-colors hover:bg-accent/40">
+                    <div className="p-5">
+                      <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                        <div className="inline-flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4" />
+                          <span>Conversation</span>
+                        </div>
+                        <div className="inline-flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          <span>{new Date(row.created_at).toLocaleString()}</span>
+                        </div>
+                        <div className="inline-flex items-center gap-2">
+
+                          <Button
+                            onClick={() => deleteChat(row.id)}
+                            disabled={deleting === row.id}
+                            variant="destructive"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            {deleting === row.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <h3 className="mt-3 text-base font-semibold leading-6 line-clamp-2">
+                        {row.question}
+                      </h3>
+
+                      <p className="mt-2 text-sm text-muted-foreground line-clamp-3">
+                        {row.answer}
+                      </p>
+
+                      <div className="mt-4 flex items-center justify-between">
+                        <Link href={`/chat`} className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
+                          Open chat
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </Suspense>
-    </div>
+      </div>
+    </Suspense>
   );
 }
